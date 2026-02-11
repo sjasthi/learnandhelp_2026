@@ -1,0 +1,67 @@
+info@learnandhelp.com,
+brindhram@gmail.com,
+dundrapelly@gmail.com,
+prasadca60@gmail.com,
+harikapolavaram@gmail.com,
+kodalivk@gmail.com,
+aprd.varma@gmail.com,
+logisettiaparna@gmail.com,
+ishana.didwania@gmail.com,
+psparipati@gmail.com,
+umaganti@gmail.com
+
+
+getting generic emails - info@learnandhelp.com   treasurer@learnandhelp.com
+
+                                   follow up: f
+
+                                                                      7/31/2024: Deployed the changes from ICS325 (Fall 2024)
+
+
+seshu friend
+hitagna
+email guy
+phone guy
+Shraddha desai
+sriyaan
+
+
+BUGS:
+
+https://one.jasthi.com/admin_offerings_CRUD.php  should be fixed to display the complete db schema
+
+https://learnandhelp.jasthi.com/admin_edit.php  is not working.
+
+main.css include should be extracted out to one file (include - header.php, footer.php and db_configuration.php)
+
+fix the bar on all.
+
+-- cookie for the admin
+-- cookie for the users
+-- partial payment
+-- password change
+-- letters to people
+
+account:
+getting the address
+
+adding "compliance"
+-- receipts
+
+adding "communications"
+-- letter templates
+-- mailerlite management
+
+
+Python DS
+Python ML
+
+
+Update the registration form / edit / update to include the "current grade"
+Enable the admin to create the registration on behalf of the users
+
+
+Enable excel export on the jquery data tables  - be consistent!
+
+
+

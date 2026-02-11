@@ -1,0 +1,36 @@
+Q: How do I enroll in "Learn and Help" classes?
+A: Create an account on the designated site (one-time activity), then click “Enroll” to join the classes.
+
+Q: I am an adult learner. Can I join the classes?
+A: Certainly! 
+
+
+Q: What support is available if students fall behind?
+A: Each class has a Teaching Assistant (TA) and scheduled help sessions. Students can reach out to their TA or instructor for additional support. Parents are encouraged to ensure their children complete weekly assignments.
+
+Q: Can students switch between morning and evening Python 101 sessions if they have a conflict?
+A: Yes! Only Python101 is offered in the morning (9 to 10:30 AM CST) and in the evening (7 to 8:30 PM CST). If a student has a scheduling conflict with their registered session, they are encouraged to attend the alternate session.
+
+Q: Are the classes live or recorded?
+A: All classes are conducted live via Zoom for real-time interaction. Recordings are posted to Google Classroom and available for review afterward.
+
+Q: What should we do if my child or I miss a session?
+A: Watch the session recording in Google Classroom and complete the assignments. If additional help is needed, contact the TA to join a help session.
+
+Q: My child already knows Python. Can they register for Python for Data Science (Python DS)?
+A: Please contact the instructor at Siva.Jasthi@gmail.com to assess prior knowledge and discuss possible exceptions.
+
+Q: Can parents join Google Classroom to monitor their child's progress?
+A: No. Parent accounts can clutter the classroom and create challenges for instructors. Instead, ask your child to show their progress or contact the TA for updates.
+
+Q: Can I nominate a teacher to receive support for school supplies?
+A: Yes, as long as the student is currently taking classes from that teacher—either at school or in the community (e.g., SILC, SiliconAndhra Manabadi, Paathasala).
+
+Q: Can I nominate a school to receive library/book supplies?
+A: Absolutely! We encourage active participation in the “Help” aspect of “Learn and Help.” Please provide school and contact details (teacher/librarian/headmaster) along with a commitment letter from the school.
+
+Q: Can I suggest another non-profit to receive support from “Learn and Help”?
+A: Yes! If middle or high school students are involved with the non-profit (e.g., schools, community or arts organizations), you may recommend it. Suggestions will be evaluated based on the mission of “Learn and Help” — Empowering Minds, Inspiring Generosity.
+
+Q: Do you offer classes in languages other than Python, such as Java or JavaScript?
+A: During the regular session (September to May), we offer Python courses: Python 101, Python DS, Python ML, and Python AL — aligned with industry trends in automation and AI. In the summer session, we may offer other courses like Java, JavaScript, HTML/CSS/JavaScript, and MySQL based on demand.

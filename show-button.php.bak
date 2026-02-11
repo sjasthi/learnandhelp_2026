@@ -1,0 +1,20 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+function getButton() {
+  
+    if (isset($_SESSION['user_id'])) {
+        $name = isset($_SESSION['first_name']) ? $_SESSION['first_name'] : '';
+        $label = 'Log Off' . ($name ? " $name" : '');
+        $action = 'logoff.php';
+    } else {
+        $label = 'Log on';
+        $action = 'loginAction.php';
+    }
+    echo '<form action="'.$action.'" method="post" style="display:inline;">
+            <input class="login-button" type="submit" value="' . $label . '"/>
+        </form>';
+}
+?>

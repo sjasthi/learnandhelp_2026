@@ -1,0 +1,61 @@
+1,"Z P H  School G  - 4 .","Smt. Vijaya Bhanu Kote","9502247679 / 8247769052","Nakshatra  Enclave . Police Raj road - Near - Sri Chaithanya Techno School Payaka Rao Pet - Anakapalli Dist AP",Christopher Rigney
+2,"Chethana School","Ms. Marudwathi","9848132435","Chowdavaram Village Guntur (District) AP - 522019",Ivaturi Madhu Kiran
+3,"Librarian Z P H. School.","Kakumanu Hima Bindu","9505550075","Unnava (Village) Edlapadu (Mandal) Guntur (District) AP - 522233",Nageswara Rao Kottapalli
+4,"Abhyasa vidyalaya","Krishna","9440579922","Near Water tank Gangireddula dibba Gunadala Vijayawada - 520010",Chandra Ghatti
+5,"C E O H E A L Paradise","Sri Ajay Kumar","7032885515","Thotapalli post - Agiripalli mandal - Krishna (Dt.) AP - 521211",Madhuri Kalidindi
+6,"Principal Pragathi Vidya Nikethan  ( P V N )","Smt  Madhavi","9490233878","Opp : sub station Prashanthi Hills Phase - 1 - Road ., Pragathi Nagar Opp : J N T U H ., Hyderabad - 500090",Seshadri Ramkumar
+7,"Head Master Govt A G H School","Smt. Krishna Kumari","7673947896","Chintoor - vill/ PO / & mandal ., Alluri Seetha Rama Raju (Dt.) AP - 533347",Sudarshan Ramakrishnan
+8,"Aravinda model school.","Smt. Indrani","703249666","Mangalagiri Guntur (Dt.) AP - 522501",Achyut Kodali
+9,"Head Master Z P H  School","Sri Ch.Veerappayya","9949931545","Boggaram - village & post Eepuru (Mandal) Palnadu (District) AP - 522658",Achyut Kodali
+10,"VIVA the School","Modugula Ravi Krishna","9440320580","V V I T campus Nambur village Peda kakani (Mandal) Guntur (District) AP - 522508",Uma Ganti
+11,"ZP High School","Subhani","7995872899","Cheruvu Jammula Palem Bapatla (Dt.) AP 522113",Chandra Chennupati, Minneapolins, MN
+12,"Head Master Govt. High School","Swamy","970 144 5736","(Main Road) Yellandu (p.o) Bhadradri Kothagudem Telangana - 507123 Dist. Co-Education School. 6th to 10th class. Both Media TM & EM Total Strength. 200.",Naveen Anasuri, Dallas, TX
+13,"Mary Swarna Latha (HM)","9441974422","ZP High School, Cheerlavancha, Sircilla (Mandal), Karimnagar (Dt.) 420 students 6th grade to 10th grade",Ravi Sreeram (NY),Babu Dundrapelly
+14,"T.S.R. Prasad","984 903 1630","Krushi Home for Street Children Hyderabad, Telangana",Brinda Raman, Minneapolis, MN
+15,"H M : Nagamuni Reddy","9441124310","ZPHS Madhavaram, Rayachoti -Galiveedu Rd, Annamayya District, Andhra Pradesh",Thanush Reddy Thimmasani, Minneapolis, MN
+16,"Dr. M. Harikishan","94410 32212","ZPH School Amadaguntla Kodumur Mandal Kurnool (Dt.), AP",Mohan Velagapudi, Minneapolis, MN
+17,"Sri Venkata Subba Reddy","8106050045","Z P H School ( Boys) Badvel Kadapa Dist",Srikanth Tirumala, Dallas, TX
+18,"SJRRMMC High school .","9491672311","Ms. Sudha Rani ., Opp: Bhaskar Deluxe Theatre Kotha pet Guntur, AP",Popuri Anantha lakshmi English teacher & Library incharge .,Siva Jasthi, Minneapolis, MN
+19,"Venkata Kotaiah Balijepalli","91777 14380","ZP High School Adusumalli (Village) Bapatla (Dt.), AP",Siva Jasthi, Minneapolis, MN
+20,"shyamala nagar school","Sri Venkateswara Bala Kuteer 3rd Line, Syamala Nagar, Guntur, AP 522006, India",Siva Jasthi, Minneapolis, MN
+21,"Cheerlavancha Elementary School - 1",,Babu Dundrapelly,Siva Jasthi
+22,"Cheerlavancha Elementary School - 2",,Babu Dundrapelly,Siva Jasthi
+23,"Sri Nagaraja Special Muncipal Corporation Elementary School","Vivek Kommireddy (Plymouth, MN)","Rajamahendravaram East Godavari (Dt.),  AP - 533101","97013 88686"
+24,"The Indo-English School","6281 459 914","Jyothi (Admin)","Chundurivari Veedhi, Southern Street, Eluru -",Amruthavalli Kavi and Raghu Akkaraju (Dallas, TX)
+25,"MPPS","P. Subramanyam (Telugu Teacher)","9502407323","Belupalli (Village),Baireddypalli (Mandal), Chittoor (Dt.), AP",Balaji and Radhika Paripati (Dallas, TX)
+26,"MPPS Machireddy Pally","KLN Rao","9848105200","Nagaram (Mandal), Suryapet (Dt.), Telangana - 508279",Krishna Bommidi (Plymouth, MN)
+27,"MPP School",,"Manoja Namuburi","Venkatagiri,Dr. C.A.Prasad,Kavitha Mangalagiri (Dallas, TX)"
+28,"Vunnava MPPS (Surya Nagar Elementary School)",,"Himabindu Kakumanu","Gopichand Jasthi"
+29,"Vunnava MPPS (Udayapuri Elementary School)",,"Himabindu Kakumanu","Gopichand Jasthi"
+30,"Vunnava MPPS (Yanadi Mastari School / HE School)",,"Himabindu Kakumanu","Gopichand Jasthi"
+31,"Vunnava MPPS (Main Elementary School)",,"Himabindu Kakumanu","Gopichand Jasthi"
+32,"M P U P School",,"Veera Reddy - teacher","Inkollu mandal Bapatla District Pin. 523190",Ramakrishna Vuyyuru, Minnapolis, MN
+33,"M P U P School .",,"Smt Madhavi varigonda","Near Rajamandry - E G Dist ., Pin :  533101","9849744456",Paawany Arjarapu
+34,"M P U P School .","9010902056","Ravi Raju - H M","Medak Dist - 502316 .,Ravi Raju - H M","Ravi Raju - H M"
+35,"M P U P School .","9704487533","Rajesh Koluri (Cell 9704487533)","Vijayanagaram Dist - Pin 535273","Rajesh Koluri (Cell 9704487533)","Pavani Nunna (Dallas, TX)"
+36,"Farm Hill learning .","8431032239","Venu  &  Chitra","Shoolagiri Krishna giri Dist - 635117 Tamilnadu .",Leelavathi Chinta (Minneapolis, MN),Dr. C.A.prasad
+37,"Amma Social Welfare Association",,"Haritha:  +91 99497 89229","Shadnagar Ranga Reddy Dist",Keerti Chunduru (Dallas, TX)
+38,"LR Primary /  Elementary School","98667 27707","Rayappa","Alokam Peddabbai (School Committee President)","Lingaraopalem Edlapadu Mandal Guntur (Dt.) AP - 522233",Keerti Chunduru (Dallas, TX)
+39,"Nagalakshmi",,"+91 94908 87025",,Siva Jasthi
+40,"S. Chalapathi","9989520053",,"S. R . Nagar ., Kajuluru - 533468 E G Dist ., PIN: 533468",Siva Jasthi
+41,"ZPHS","94914 07655","K. Chandra Moulini","ZPH School Chinna Hothur Aspari Mandal Kurnool (Dt.), AP",Kishore and Prashanthi Nare (Dallas, TX)
+42,"ZPHS","9441259972","Dr. S. YELLAYYA","ZPH SCHOOL PYDIBHEAVARAM RANASTHALAM Md SRIKAKULAM Dt,Ph no  9441259972",Komal Kapoor and Amit Khanna  (Memphis, TN)
+43,"ZPHS",,"Belupalli Baireddy (ZPHS)",Balaji Paripati (Dallas, TX)
+44,"AP Residential High School (Tadikonda)","9618817161","Smt  Bala Sri","A P Residential School  ., Tadikonda vill / post Guntur district Pin code: 522236 .",Modugula Ravi Krishna,Siva Jasthi (Minneapolis, MN)
+45,"Intel High School (perecherla, guntur)",,"Dr. Jayakumar",,Siva Jasthi (Minneapolis, MN)
+46,"Abbinenigunta vari palem",,"Mrs Leela Rani garu","Abbineniguntapalem, Pedanandipadu Mandal, Guntur Dt",Siva Jasthi
+47,"ZILLA PARISHAD HIGH SCHOOL;", "91 91540 39037","P. Srinivasa Rao","LINGARAOPALEM; EDALAPADU MANDAL; GUNTUR Dt.",Siva Jasthi
+48,"Sri Mavuleti Soma Raju zilla praja parishad high school",,"D.Durga Prasad (Library Assistant)","G.Kanaka Durga Suneetha,Gundugolanu West Godavari (Dt.)",Siva Jasthi (Minneapolis, MN)
+49,"Z P H School .",,"V Naresh .","Kondapuram  (Mandal) Nellore district - 524228",Siva Jasthi (Minneapolis, MN)
+50,"K R Z P H School .","9848377734","P . Shankar","Rajanna Sirisilla Dist Telangana state",Siva Jasthi
+51,"M P P school .",,"K Sudha Rani .","TARLUPADU MANDAL Prakasam Dist Pin Code: 523371",Siva Jasthi
+52,"Lalitha Budarapu","6300989173","Lalitha Budarapu","Ramagiri mandal, Sri Satya Sai Dist Pin code:515672",Siva Jasthi
+53,"M P P school .",,"Vaddi Usha Rani .","Vizianagaram district, A. P Pin: 532127",Siva Jasthi
+54,"M P P school .",,"T.LakshmiBhavani.","Nellore District, A.P,.  524316",Siva Jasthi
+55,"M P P School .","9492551451","Vadla Hari Prasad .","Chittore Dist PIN 517408",Siva Jasthi
+id,school_name,contact_name,contact_phone,address_text,sponsor
+56,"GDET Municipal Corporation Elementary School .","7702916617","N Kusuma ( SGT )","NTR District",Siva Jasthi
+57,"M P P School .","9848883025","M. Rajani .","Prakasam Dist PIN:523274",Siva Jasthi
+58,"M P P school .","9989827116","P Krishnaveni - SGT .","Srikakulam (Dist), Pin 532165",Siva Jasthi
+59,"M P P school .","7702208643","P Gayathri ( SGT )","Bapatla Dist -  523184",Siva Jasthi
+60,"M P P school .","9440107592","K Rama Devi - SGT .","Prakasam dt - 523274",Siva Jasthi

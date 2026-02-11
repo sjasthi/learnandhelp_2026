@@ -1,0 +1,200 @@
+<?php
+require_once __DIR__ . '/db_configuration.php';
+include 'show-navbar.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$success = false;
+$error = '';
+
+// Require login
+if (!isset($_SESSION['user_id']) || !$_SESSION['user_id']) {
+    $error = "You must be logged in to register for a class.";
+}
+
+// Get offering_id (either from GET or POST)
+$offering_id = isset($_GET['offering_id']) ? intval($_GET['offering_id']) :
+               (isset($_POST['offering_id']) ? intval($_POST['offering_id']) : 0);
+
+$classInfo = null;
+if ($offering_id) {
+    $stmt = $db->prepare("
+        SELECT o.offering_id, o.start_date, o.end_date, o.day_of_week, o.start_time, o.end_time,
+               o.Batch_Name, c.Class_Name, c.Class_Id
+        FROM offerings o
+        JOIN classes c ON o.Class_Id = c.Class_Id
+        WHERE o.offering_id = ?
+    ");
+    $stmt->bind_param("i", $offering_id);
+    $stmt->execute();
+    $classInfo = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
+
+// Only process form if logged in and form POSTed
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
+    // Always trust offering_id from hidden field
+    $offering_id = intval($_POST['offering_id'] ?? 0);
+    $Sponsor1_Email      = trim($_POST['Sponsor1_Email'] ?? '');
+    $Referral_Name       = trim($_POST['Referral_Name'] ?? '');
+    $Sponsor1_Name       = trim($_POST['Sponsor1_Name'] ?? '');
+    $Sponsor1_Phone_Number = trim($_POST['Sponsor1_Phone_Number'] ?? '');
+    $Student_Name        = trim($_POST['Student_Name'] ?? '');
+    $Student_Email       = trim($_POST['Student_Email'] ?? '');
+    $Student_Phone_Number= trim($_POST['Student_Phone_Number'] ?? '');
+    $Library_setup       = trim($_POST['Library_setup'] ?? '');
+    $School_support      = trim($_POST['School_support'] ?? '');
+    $Payment_method      = trim($_POST['Payment_method'] ?? '');
+
+    // Get class info from offering for DB consistency
+    if (!$classInfo && $offering_id) {
+        $stmt = $db->prepare("
+            SELECT o.offering_id, o.Batch_Name, o.Class_Id, c.Class_Name
+            FROM offerings o
+            JOIN classes c ON o.Class_Id = c.Class_Id
+            WHERE o.offering_id = ?
+        ");
+        $stmt->bind_param("i", $offering_id);
+        $stmt->execute();
+        $classInfo = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    }
+    $Class_Id     = $classInfo['Class_Id'] ?? 0;
+    $Batch_Name   = '2025-2026';  
+    $classes_taken= $classInfo['Class_Name'] ?? '';
+    $User_Id      = intval($_SESSION['user_id']);
+    $Student_Photo= '/learnandhelp/images/banner_images/Classes/avatar.jpg';
+    $Has_Python_Cert = 'No';
+
+    if (!$Sponsor1_Email || !$Sponsor1_Name || !$Sponsor1_Phone_Number || !$Class_Id || !$offering_id) {
+        $error = "Please fill in all required Sponsor info fields.";
+    } else {
+        $stmt = $db->prepare("
+            INSERT INTO registrations (
+                offering_id, Class_Id, Sponsor1_Email, Referral_Name, Sponsor1_Name, Sponsor1_Phone_Number,
+                Student_Name, Student_Email, Student_Phone_Number, Library_setup, School_support, Payment_method,
+                Batch_Name, User_Id, Student_Photo, Has_Python_Cert, classes_taken, Modified_Time, Created_Time
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), CURDATE())
+        ");
+       $stmt->bind_param(
+    "iisssssssssssisss",  
+    $offering_id, $Class_Id, $Sponsor1_Email, $Referral_Name, $Sponsor1_Name, $Sponsor1_Phone_Number,
+    $Student_Name, $Student_Email, $Student_Phone_Number, $Library_setup, $School_support, $Payment_method,
+    $Batch_Name, $User_Id, $Student_Photo, $Has_Python_Cert, $classes_taken
+);
+
+        if ($stmt->execute()) {
+            $success = true;
+        } else {
+            $error = "Error saving registration: " . htmlspecialchars($stmt->error);
+        }
+        $stmt->close();
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Register | Learn and Help</title>
+    <link href="css/main.css" rel="stylesheet" />
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background: #f8f8f8; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); overflow: hidden; }
+        .form-title-banner { background-color: #99d930; padding: 20px; text-align: center; }
+        .form-title-banner h2 { margin: 0; font-size: 2em; color: #252525; font-weight: 700; }
+        .form-content { padding: 30px; }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        label { font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1em; }
+        .submit-btn { background: #99d930; color: #252525; font-weight: bold; padding: 14px 24px; font-size: 1em; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        .submit-btn:hover { background: #7fc41c; }
+        .header-info { background: #f2f2f2; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; line-height: 1.6; }
+        .success { color: green; font-weight: bold; text-align: center; margin-bottom: 20px; }
+        .error { color: red; font-weight: bold; text-align: center; margin-bottom: 20px; }
+        .required-asterisk { color: #b30000; }
+    </style>
+</head>
+<body>
+<?php show_navbar(); ?>
+
+<div class="container">
+    <div class="form-title-banner">
+        <h2>Class Registration</h2>
+    </div>
+    <div class="form-content">
+        <?php if ($classInfo): ?>
+            <div class="header-info">
+                <strong>Class:</strong> <?= htmlspecialchars($classInfo['Class_Name']) ?><br>
+                <strong>Session:</strong>
+                <?= $classInfo['day_of_week'] ?>
+                (<?= date('g:i A', strtotime($classInfo['start_time'])) ?> – <?= date('g:i A', strtotime($classInfo['end_time'])) ?>)<br>
+                <strong>Dates:</strong>
+                <?= date('M j, Y', strtotime($classInfo['start_date'])) ?> – <?= date('M j, Y', strtotime($classInfo['end_date'])) ?><br>
+                <strong>Batch:</strong> 2025-2026
+            </div>
+        <?php endif; ?>
+
+        <?php if ($success): ?>
+            <p class="success">🎉 Registration submitted successfully!</p>
+        <?php elseif (!empty($error)): ?>
+            <p class="error"><?= htmlspecialchars($error) ?></p>
+        <?php endif; ?>
+
+        <?php if (empty($error) && !$success): ?>
+        <form method="POST">
+            <!-- Hidden fields to link registration to the correct class and offering -->
+            <input type="hidden" name="offering_id" value="<?= htmlspecialchars($offering_id) ?>">
+            <input type="hidden" name="Class_Id" value="<?= $classInfo ? htmlspecialchars($classInfo['Class_Id']) : '' ?>">
+
+            <label>Parent's Email <span class="required-asterisk">*</span></label>
+            <input type="email" name="Sponsor1_Email" required>
+
+            <label>Name of referral (optional)</label>
+            <input type="text" name="Referral_Name">
+
+            <label>Parent's Name <span class="required-asterisk">*</span></label>
+            <input type="text" name="Sponsor1_Name" required>
+
+            <label>Parent's Phone <span class="required-asterisk">*</span></label>
+            <input type="text" name="Sponsor1_Phone_Number" required>
+
+            <label>Student's Name</label>
+            <input type="text" name="Student_Name">
+
+            <label>Student's Email</label>
+            <input type="email" name="Student_Email">
+
+            <label>Student Phone Number</label>
+            <input type="text" name="Student_Phone_Number">
+
+            <!-- No need to allow Class_Id choice here; offering choice implies class -->
+            <label><strong>Course:</strong></label>
+            <div style="padding:8px 4px; background:#f9f9f9; border-radius:6px;"><?= htmlspecialchars($classInfo['Class_Name']) ?></div>
+
+            <label>Name and address of the school (in AP or Telangana) where you want to setup the library (optional)</label>
+            <input type="text" name="Library_setup">
+
+            <label>If you want to support your school or classroom teacher, please share their details.  They can get $100 worth of school supplies! </label>
+            <input type="text" name="School_support">
+
+            <label>Fees payment method (choose one) <span class="required-asterisk">*</span></label>
+            <select name="Payment_method" required>
+                <option value="">Select payment method</option>
+                <option>Check or e-Check</option>
+                <option>Bank Transfer (please contact Siva Jasthi)</option>
+                <option>Zelle</option>
+                <option>Venmo</option>
+                <option>Paying in Rupees (contact Siva Jasthi)</option>
+            </select>
+
+            <button type="submit" class="submit-btn">Submit Registration</button>
+        </form>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php include 'footer.php'; ?>
+</body>
+</html>
