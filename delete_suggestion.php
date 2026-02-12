@@ -8,21 +8,23 @@ if ($conn->connect_error) {
 // delete_suggestion.php
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Assuming $conn is the database connection
-    $suggested_school_id = $_POST['suggested_school_id'];
+    $school_id = $_POST['school_id'];
 
-    // Delete the suggested school entry
-    $sql = "DELETE FROM schools_suggested WHERE id = $suggested_school_id";
+    // Delete the proposed school entry
+    $sql = "DELETE FROM schools WHERE id = ? AND status = 'Proposed'";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $school_id);
 
-    if ($conn->query($sql) === TRUE) {
-        echo "School suggestion deleted successfully!";
+    if ($stmt->execute()) {
+        // Redirect back to admin review page
     } else {
-        echo "Error deleting record: " . $conn->error;
+        echo "Error deleting record: " . $stmt->error;
     }
 
-    header('Location: admin_review_suggestions.php');
-
-    // Close the database connection
+    $stmt->close();
     $conn->close();
+
+    header('Location: admin_review_suggestions.php');
+    exit();
 }
 ?>

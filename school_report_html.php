@@ -87,7 +87,7 @@ while ($row = $result->fetch_assoc()) {
     $html .= '<img src="images/admin_icons/school.png" alt="logo">';
     $html .= '<h2>' . htmlspecialchars($row['name'] ?? '') . '</h2>';
     $html .= '</div>';
-    $html .= '<p class="id">' . htmlspecialchars($row['Reg_Id'] ?? '') . '</p>'; // FIXED LINE
+    $html .= '<p class="id">' . htmlspecialchars($row['id'] ?? '') . '</p>';
     $html .= '</div>';
     $html .= '<div class="info">';
     $html .= '<div class="column">';

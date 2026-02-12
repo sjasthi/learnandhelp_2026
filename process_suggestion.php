@@ -13,20 +13,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contact_mobile = $_POST['contact_mobile'];
     $commitment_statement = $_POST['commitment_statement'];
 
-    // Insert the data into the schools_suggested table
-    $sql = "INSERT INTO schools_suggested (school_name, contact_name, contact_mobile, commitment_statement)
-            VALUES ('$school_name', '$contact_name', '$contact_mobile', '$commitment_statement')";
+    // Insert the data into the schools table with status 'Proposed'
+    $sql = "INSERT INTO schools (name, contact_name, contact_phone, commitment_statement, status)
+            VALUES (?, ?, ?, ?, 'Proposed')";
 
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", $school_name, $contact_name, $contact_mobile, $commitment_statement);
+
+    if ($stmt->execute()) {
         // alert the user that the school suggestion was submitted successfully
         echo "<script type='text/javascript'>alert('School suggestion submitted successfully!');</script>";
         // upon clinking the OK button, redirect the user to the home page
         echo "<script type='text/javascript'>window.location.href = 'index.php';</script>";
     } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
+        echo "Error: " . $stmt->error;
     }
 
-
+    $stmt->close();
 
     // Close the database connection
     $conn->close();

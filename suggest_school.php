@@ -20,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (isset($_POST['submit'])) {
-        $suggester_id = $_SESSION['user_id'];
         $school_name = trim($_POST['school_name'] ?? '');
         $contact_name = trim($_POST['contact_name'] ?? '');
         $contact_mobile = trim($_POST['contact_mobile'] ?? '');
@@ -34,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Contact name is required.';
             $messageType = 'error';
         } else {
-            // Insert into database
-            $stmt = $db->prepare("INSERT INTO schools_suggested (suggestor_id, school_name, contact_name, contact_mobile, commitment_statement) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("issss", $suggester_id, $school_name, $contact_name, $contact_mobile, $commitment_statement);
+            // Insert into schools table with status 'Proposed'
+            $stmt = $db->prepare("INSERT INTO schools (name, contact_name, contact_phone, commitment_statement, status) VALUES (?, ?, ?, ?, 'Proposed')");
+            $stmt->bind_param("ssss", $school_name, $contact_name, $contact_mobile, $commitment_statement);
             
             if ($stmt->execute()) {
                 // Success - redirect to index.php with flash message

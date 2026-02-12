@@ -229,10 +229,10 @@ $summary_by_supported_by = get_summary_data($connection, 'supported_by');
         $sort_order = isset($_GET['sort']) ? $_GET['sort'] : 'id_desc';
         $show_nriva = isset($_GET['show_nriva']) ? $_GET['show_nriva'] : '';
         $show_pgnf = isset($_GET['show_pgnf']) ? $_GET['show_pgnf'] : '';
-        $sql = "SELECT Reg_Id, name, type, category, state_name, state_code, address_text, supported_by, contact_name FROM schools WHERE 1=1";
+        $sql = "SELECT id, name, type, category, state_name, state_code, address_text, supported_by, contact_name FROM schools WHERE 1=1";
         if ($search) {
             $escaped = $connection->real_escape_string($search);
-            $sql .= " AND (Reg_Id LIKE '%$escaped%' OR name LIKE '%$escaped%' OR type LIKE '%$escaped%' OR state_name LIKE '%$escaped%' OR state_code LIKE '%$escaped%' OR address_text LIKE '%$escaped%' OR category LIKE '%$escaped%')";
+            $sql .= " AND (id LIKE '%$escaped%' OR name LIKE '%$escaped%' OR type LIKE '%$escaped%' OR state_name LIKE '%$escaped%' OR state_code LIKE '%$escaped%' OR address_text LIKE '%$escaped%' OR category LIKE '%$escaped%')";
         }
         if ($show_nriva === 'true') {
             $sql .= " AND supported_by = 'NRIVA'";
@@ -241,13 +241,13 @@ $summary_by_supported_by = get_summary_data($connection, 'supported_by');
         }
         switch ($sort_order) {
             case 'id_asc':
-                $sql .= " ORDER BY Reg_Id ASC";
+                $sql .= " ORDER BY id ASC";
                 break;
             case 'id_desc':
-                $sql .= " ORDER BY Reg_Id DESC";
+                $sql .= " ORDER BY id DESC";
                 break;
             default:
-                $sql .= " ORDER BY Reg_Id DESC";
+                $sql .= " ORDER BY id DESC";
         }
         $result = mysqli_query($connection, $sql);
         if ($result && $result->num_rows > 0) {
@@ -259,7 +259,7 @@ $summary_by_supported_by = get_summary_data($connection, 'supported_by');
                     echo "<tr>";
                 }
 
-                $reg_id = htmlspecialchars($row["Reg_Id"] ?? '');
+                $reg_id = htmlspecialchars($row["id"] ?? '');
                 $name = htmlspecialchars($row["name"] ?? '');
                 $type = htmlspecialchars($row["type"] ?? '');
                 $address = htmlspecialchars($row["address_text"] ?? '');
