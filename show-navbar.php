@@ -45,6 +45,7 @@ function show_navbar() {
             <a href="books.php">Books We shipped</a>
             <a href="suggest_school.php">Nominate a School</a>
             <a href="recommend_non_profit.php">Recommend a Non-Profit</a>
+            <a href="chat.php">Schools Chat Bot</a>
           </div>
         </div>
         
