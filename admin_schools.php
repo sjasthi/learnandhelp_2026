@@ -45,6 +45,31 @@ function get_profile_image($id)
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+  <style>
+    body { overflow-x: hidden; }
+    .badge-proposed {
+      background: #e65100;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    #schools_table thead tr:nth-child(2) th {
+      padding: 4px 6px;
+    }
+    #schools_table thead tr:nth-child(2) input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px 6px;
+      font-size: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      color: #222;
+      background: #fff;
+    }
+  </style>
   <script>
     $(document).ready(function() {
       $('#schools_table thead tr').clone(true).appendTo('#schools_table thead');
@@ -54,20 +79,15 @@ function get_profile_image($id)
       });
 
       var table = $('#schools_table').DataTable({
-        initComplete: function() {
-          // Apply the search
-          this.api()
-            .columns()
-            .every(function() {
-              var that = this;
+        orderCellsTop: true,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      });
 
-              $('input', this.header()).on('keyup change clear', function() {
-                if (that.search() !== this.value) {
-                  that.search(this.value).draw();
-                }
-              });
-            });
-        },
+      // Bind search inputs in the second header row to their matching columns
+      $('#schools_table thead tr:eq(1) th input').each(function(i) {
+        $(this).on('keyup change clear', function() {
+          table.column(i).search(this.value).draw();
+        });
       });
 
       $('a.toggle-vis').on('click', function(e) {
@@ -177,7 +197,7 @@ function get_profile_image($id)
           die("Connection failed: " . $conn->connect_error);
         }
 
-        $sql = "SELECT * FROM schools";
+        $sql = "SELECT id, name, type, category, grade_level_start, grade_level_end, current_enrollment, address_text, state_name, state_code, pin_code, contact_name, contact_designation, contact_phone, contact_email, status, notes, referenced_by, supported_by FROM schools";
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
@@ -203,8 +223,11 @@ function get_profile_image($id)
 			";
 			// Allow for "in-cell" editing of the table
 			foreach ($row as $key=>$value) {
+			  $display = ($key === 'status' && $value === 'Proposed')
+			    ? '<span class="badge-proposed">' . htmlspecialchars($value) . '</span>'
+			    : htmlspecialchars($value);
 			  echo "
-			  <td><div contenteditable=\"true\" onBlur=\"updateValue(this,'$key','$id')\">$value</div></td>
+			  <td><div contenteditable=\"true\" onBlur=\"updateValue(this,'$key','$id')\">$display</div></td>
 			  ";
 			}
             echo "</tr>";

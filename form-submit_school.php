@@ -73,54 +73,41 @@ if($action == 'admin_edit_school' or $action == 'admin_add_school'){
 
 if($action == "admin_edit_school") {
 	$id = $_POST['id'];
-	$sql = "UPDATE schools SET
-			name = '$name',
-			type = '$type',
-			category = '$category',
-			grade_level_start = '$grade_level_start',
-			grade_level_end = '$grade_level_end',
-			current_enrollment = '$current_enrollment',
-			address_text = '$address_text',
-			state_name = '$state_name',
-			state_code = '$state_code',
-			pin_code = '$pin_code',
-			contact_name = '$contact_name',
-			contact_designation = '$contact_designation',
-			contact_phone = '$contact_phone',
-			contact_email = '$contact_email',
-			status = '$status',
-			notes = '$notes',
-			referenced_by = '$referenced_by',
-			supported_by = '$supported_by'
-			WHERE id = '$id';";
+	$stmt = $connection->prepare(
+		"UPDATE schools SET
+			name = ?, type = ?, category = ?, grade_level_start = ?, grade_level_end = ?,
+			current_enrollment = ?, address_text = ?, state_name = ?, state_code = ?,
+			pin_code = ?, contact_name = ?, contact_designation = ?, contact_phone = ?,
+			contact_email = ?, status = ?, notes = ?, referenced_by = ?, supported_by = ?
+		WHERE id = ?");
+	$stmt->bind_param('ssssssssssssssssssi',
+		$name, $type, $category, $grade_level_start, $grade_level_end,
+		$current_enrollment, $address_text, $state_name, $state_code,
+		$pin_code, $contact_name, $contact_designation, $contact_phone,
+		$contact_email, $status, $notes, $referenced_by, $supported_by, $id);
 } elseif($action == 'admin_add_school') {
-	$sql = "INSERT INTO schools VALUES (
-		NULL,
-		'$name',
-		'$type',
-		'$category',
-		'$grade_level_start', 
-		'$grade_level_end',
-		'$current_enrollment',
-	    '$address_text',
-	    '$state_name',
-		'$state_code',
-		'$pin_code',
-		'$contact_name',
-		'$contact_designation',
-		'$contact_phone',
-		'$contact_email',
-		'$status',
-		'$notes',
-		'$referenced_by',
-		'$supported_by');";
+	$stmt = $connection->prepare(
+		"INSERT INTO schools
+			(name, type, category, grade_level_start, grade_level_end, current_enrollment,
+			 address_text, state_name, state_code, pin_code, contact_name, contact_designation,
+			 contact_phone, contact_email, status, notes, referenced_by, supported_by)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$stmt->bind_param('ssssssssssssssssss',
+		$name, $type, $category, $grade_level_start, $grade_level_end,
+		$current_enrollment, $address_text, $state_name, $state_code,
+		$pin_code, $contact_name, $contact_designation, $contact_phone,
+		$contact_email, $status, $notes, $referenced_by, $supported_by);
+} else {
+	// No valid action posted — redirect safely
+	header('Location: admin_schools.php');
+	exit;
 }
 
-if (!mysqli_query($connection, $sql)) {
-	echo("Error description: " . mysqli_error($connection));
+if (!$stmt->execute()) {
+	echo("Error description: " . $stmt->error);
 } else {
 	if($action == 'admin_add_school') {
-		$id = mysqli_insert_id($connection);
+		$id = $connection->insert_id;
 	}
 
 	// id is not null and there is something in $_FILES so upload them
@@ -189,6 +176,7 @@ if (!mysqli_query($connection, $sql)) {
 		  </script>";
 }
 
+$stmt->close();
 mysqli_close($connection);
 
 ?>

@@ -172,7 +172,7 @@ $summary_by_supported_by = get_summary_data($connection, 'supported_by');
     </div>
 </header>
 <div class="search-container">
-    <input type="search" id="search-input" class="search-input" placeholder="Search by name or ID">
+    <input type="search" id="search-input" class="search-input" placeholder="Search by name or ID" value="<?= htmlspecialchars($search) ?>">
     <button id="search-button" class="search-button">Search</button>
     <button id="sort-id-button" class="search-button">Sort by ID</button>
     <button id="show-nriva-button" class="search-button">Show NRIVA Schools</button>
@@ -229,7 +229,7 @@ $summary_by_supported_by = get_summary_data($connection, 'supported_by');
         $sort_order = isset($_GET['sort']) ? $_GET['sort'] : 'id_desc';
         $show_nriva = isset($_GET['show_nriva']) ? $_GET['show_nriva'] : '';
         $show_pgnf = isset($_GET['show_pgnf']) ? $_GET['show_pgnf'] : '';
-        $sql = "SELECT id, name, type, category, state_name, state_code, address_text, supported_by, contact_name FROM schools WHERE 1=1";
+        $sql = "SELECT id, name, type, category, state_name, state_code, address_text, supported_by, contact_name FROM schools WHERE status != 'Proposed'";
         if ($search) {
             $escaped = $connection->real_escape_string($search);
             $sql .= " AND (id LIKE '%$escaped%' OR name LIKE '%$escaped%' OR type LIKE '%$escaped%' OR state_name LIKE '%$escaped%' OR state_code LIKE '%$escaped%' OR address_text LIKE '%$escaped%' OR category LIKE '%$escaped%')";
@@ -250,7 +250,9 @@ $summary_by_supported_by = get_summary_data($connection, 'supported_by');
                 $sql .= " ORDER BY id DESC";
         }
         $result = mysqli_query($connection, $sql);
-        if ($result && $result->num_rows > 0) {
+        if ($result && $result->num_rows === 0 && $search) {
+            echo "<tr><td style='padding:20px;font-size:1rem;color:#555;'>No schools found matching \"" . htmlspecialchars($search) . "\".</td></tr>";
+        } elseif ($result && $result->num_rows > 0) {
             $counter = 0;
             while ($row = $result->fetch_assoc()) {
                 $time = time();

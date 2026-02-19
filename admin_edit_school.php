@@ -18,7 +18,7 @@ error_reporting(E_ALL);
     die('Forbidden');
   }
 
-  $id = $_POST['id'];
+  $id = isset($_POST['id']) && $_POST['id'] !== '' ? $_POST['id'] : null;
 ?>
 
 <!DOCTYPE html>

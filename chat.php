@@ -205,30 +205,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <h3>Try asking:</h3>
     <div class="sample-questions">
       <span class="sample-q" onclick="askSample(this)">How many schools does Learn and Help support?</span>
-      <span class="sample-q" onclick="askSample(this)">Is Mounds View High School supported?</span>
-      <span class="sample-q" onclick="askSample(this)">How many schools are in Proposed state?</span>
-      <span class="sample-q" onclick="askSample(this)">How many schools have Completed status?</span>
       <span class="sample-q" onclick="askSample(this)">How many students are served by these libraries?</span>
       <span class="sample-q" onclick="askSample(this)">Which schools are in Andhra Pradesh?</span>
-      <span class="sample-q" onclick="askSample(this)">Which schools are in Telangana?</span>
-      <span class="sample-q" onclick="askSample(this)">How many schools are supported by PGNF?</span>
-      <span class="sample-q" onclick="askSample(this)">How many schools are supported by NRIVA?</span>
-      <span class="sample-q" onclick="askSample(this)">What is the largest school by enrollment?</span>
-      <span class="sample-q" onclick="askSample(this)">Are there any schools in Tamil Nadu?</span>
-      <span class="sample-q" onclick="askSample(this)">Which schools are high schools?</span>
-      <span class="sample-q" onclick="askSample(this)">Which schools are primary schools?</span>
-      <span class="sample-q" onclick="askSample(this)">Is MVHS supported by Learn and Help?</span>
-      <span class="sample-q" onclick="askSample(this)">Is MV High School in the program?</span>
-      <span class="sample-q" onclick="askSample(this)">How many states does Learn and Help operate in?</span>
-      <span class="sample-q" onclick="askSample(this)">Are there any public schools in the program?</span>
-      <span class="sample-q" onclick="askSample(this)">Are there any private schools supported?</span>
-      <span class="sample-q" onclick="askSample(this)">Which school has the most students enrolled?</span>
-      <span class="sample-q" onclick="askSample(this)">Is Z P H School Boggaram supported?</span>
-      <span class="sample-q" onclick="askSample(this)">What is the status of Chethana school?</span>
-      <span class="sample-q" onclick="askSample(this)">How many schools are in Guntur?</span>
-      <span class="sample-q" onclick="askSample(this)">Are there any schools in Hyderabad?</span>
-      <span class="sample-q" onclick="askSample(this)">What types of schools does Learn and Help support?</span>
-      <span class="sample-q" onclick="askSample(this)">Tell me about the schools in Vijayawada area.</span>
     </div>
   </div>
 </div>
