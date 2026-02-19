@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Feb 12, 2026 at 04:02 AM
+-- Generation Time: Feb 19, 2026 at 02:05 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3759,7 +3759,7 @@ INSERT INTO `offerings` (`offering_id`, `Batch_Name`, `day_of_week`, `start_time
 
 CREATE TABLE `preferences` (
   `Preference_Name` varchar(50) NOT NULL,
-  `Value` varchar(50) NOT NULL
+  `Value` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4193,7 +4193,8 @@ INSERT INTO `schools` (`id`, `dise_no`, `name`, `type`, `category`, `grade_level
 (218, NULL, 'MPUP School (Pakalapadu)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'P.S.Raju', NULL, '8897534843', NULL, 'Proposed', 'P. SATYANARAYANA RAJU	\r\n8897534843	\r\n1980psraju@gmail.com	\r\nM. P. U. P, School, \r\nPakalapadu(village), \r\nSattenapalli(Mandal ), \r\nPalnadu(Dist)522403)        ', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-29 18:33:08', '2026-01-24 00:52:45'),
 (219, NULL, 'Viswakavi Residential Public School (Chinnaram)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Rajeswari Penmasta  (Ramaraju Alluri)', NULL, '6512710678', NULL, 'Proposed', 'Viswakavi Residential Public School\r\nChinnamiram, Bhimavaram\r\nAP 534204', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-30 07:17:12', '2026-01-24 00:52:45'),
 (220, NULL, 'ZPHS (Rama Samudram)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Srinivas Sakhamuri', NULL, '+919441075753', NULL, 'Proposed', 'Zphs, rama samudram, tripurantakam mandal, A.P', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-30 07:18:39', '2026-01-24 00:52:45'),
-(221, NULL, 'Test School ABC', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Professor John Doe', NULL, '555-555-5555', NULL, 'Completed', 'Testing', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-12 02:49:24', '2026-02-12 02:49:53');
+(221, NULL, 'Test School ABC', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Professor John Doe', NULL, '555-555-5555', NULL, 'Completed', 'Testing', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-12 02:49:24', '2026-02-12 02:49:53'),
+(222, NULL, 'Babbitt High', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Professor Phillip', NULL, '123-456-7890', NULL, 'Proposed', 'test', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-19 00:59:07', '2026-02-19 00:59:07');
 
 -- --------------------------------------------------------
 
@@ -4300,7 +4301,8 @@ INSERT INTO `users` (`User_Id`, `First_Name`, `Last_Name`, `Email`, `Phone`, `Ad
 (159, 'First159', 'Last159', 'user159@example.com', '5550100159', '123 Example St, City ST 00159', '$2y$10$7eFj6gX4y1iZy8JmPq2o0uKkX9xNwQp3cVb8rRtSu5uYt3mIh1e2q', 'yes', 'student', NULL, NULL, 'Samitha Revanuri', 'contact159@example.com', '5550200159', 1, NULL, '2025-11-02 06:57:51', '2025-11-02 06:57:51'),
 (160, 'First160', 'Last160', 'user160@example.com', '5550100160', '123 Example St, City ST 00160', '$2y$10$7eFj6gX4y1iZy8JmPq2o0uKkX9xNwQp3cVb8rRtSu5uYt3mIh1e2q', 'yes', 'student', NULL, NULL, NULL, 'contact160@example.com', '5550200160', 0, NULL, '2026-02-09 02:10:29', '2026-02-09 02:10:29'),
 (161, 'First161', 'Last161', 'user161@example.com', '5550100161', '123 Example St, City ST 00161', '$2y$10$7eFj6gX4y1iZy8JmPq2o0uKkX9xNwQp3cVb8rRtSu5uYt3mIh1e2q', 'yes', 'student', NULL, NULL, NULL, 'contact161@example.com', '5550200161', 0, NULL, '2026-02-09 02:38:58', '2026-02-09 02:38:58'),
-(162, 'Admin', 'LearnandHelp2026', 'admin@learnandhelp.com', '5555555555', NULL, '$2y$10$Kmm/pT.6KqRHysNCwSgP.OW.vPQ87G3sWDE740ISExjjGrwOoGl2y', NULL, 'admin', NULL, NULL, '', '', '', 0, '', '2026-02-11 20:28:11', '2026-02-11 20:26:43');
+(162, 'Admin', 'LearnandHelp2026', 'admin@learnandhelp.com', '5555555555', NULL, '$2y$10$Kmm/pT.6KqRHysNCwSgP.OW.vPQ87G3sWDE740ISExjjGrwOoGl2y', 'Yes', 'admin', NULL, NULL, '', '', '', 0, '', '2026-02-18 18:42:28', '2026-02-11 20:26:43'),
+(163, 'Admin', 'LearnandHelp', 'admin1@learnandhelp.com', '5555555555', NULL, '$2y$10$y7HTppK.I.IJPF5/54g2F.aTEXEMZDpaZIpNDf3rgOLhW8LhdCwua', 'yes', 'admin', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2026-02-18 18:39:50', '2026-02-18 18:39:50');
 
 --
 -- Indexes for dumped tables
@@ -4457,13 +4459,13 @@ ALTER TABLE `registrations`
 -- AUTO_INCREMENT for table `schools`
 --
 ALTER TABLE `schools`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'school id', AUTO_INCREMENT=222;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'school id', AUTO_INCREMENT=223;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `User_Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=163;
+  MODIFY `User_Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=164;
 
 --
 -- Constraints for dumped tables
