@@ -16,10 +16,10 @@
     </div>
     <div class="footer-right">
       <div class="footer-links">
-        <a href="/index.php">Home</a>
-        <a href="/books.php">Books</a>
-        <a href="/enroll.php">Enroll Now</a>
-        <a href="/schools.php">Schools</a>
+        <a href="http://localhost/learnandhelp_2026/index.php">Home</a>
+        <a href="http://localhost/learnandhelp_2026/books.php">Books</a>
+        <a href="http://localhost/learnandhelp_2026/enroll.php">Enroll Now</a>
+        <a href="http://localhost/learnandhelp_2026/schools.php">Schools</a>
       </div>
       <div class="footer-contact">
         <p> Contact us at <a href="mailto:Siva.Jasthi@gmail.com">Siva.Jasthi@gmail.com</a></p>

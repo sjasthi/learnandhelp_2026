@@ -70,9 +70,11 @@ $result = $conn->query($sql);
             font-family: 'Montserrat', sans-serif;
             background: #f8f8f8;
             color: #252525;
+            overflow-x: hidden;
         }
 
         .container {
+            width: 95%;
             max-width: 100%;
             margin: 40px auto;
             padding: 0 20px;
@@ -163,13 +165,6 @@ $result = $conn->query($sql);
         }
 
         /* Action buttons styling */
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-start;
-            min-width: 150px;
-        }
-
         .action-btn {
             padding: 6px 12px;
             border: none;
@@ -222,10 +217,61 @@ $result = $conn->query($sql);
         }
 
         /* Column widths */
-        .actions-col { width: 180px; min-width: 180px; }
-        .school-name-col { width: 30%; min-width: 200px; }
-        .contact-name-col { width: 25%; min-width: 150px; }
-        .contact-mobile-col { width: 20%; min-width: 120px; }
+        .actions-col { width: 140px; min-width: 140px; }
+        .school-name-col { min-width: 180px; }
+        .contact-name-col { min-width: 140px; }
+        .contact-mobile-col { min-width: 120px; }
+        .commitment-col { min-width: 200px; }
+
+        /* Stack action buttons vertically */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 130px;
+        }
+        .action-buttons form {
+            display: block;
+            width: 100%;
+        }
+        .action-btn {
+            width: 100%;
+            box-sizing: border-box;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Pending count badge */
+        .pending-badge {
+            display: inline-block;
+            background: #e65100;
+            color: #fff;
+            border-radius: 20px;
+            padding: 2px 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+
+        /* Truncate long commitment text */
+        .commitment-text {
+            max-width: 260px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+        .commitment-text:hover {
+            white-space: normal;
+            overflow: visible;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+            position: relative;
+            z-index: 10;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -301,7 +347,11 @@ $result = $conn->query($sql);
     ?>
     
     <section class="intro-banner">
-        <h1>Suggested <span class="accent-text">Schools</span></h1>
+        <h1>Suggested <span class="accent-text">Schools</span>
+            <?php if ($result->num_rows > 0): ?>
+                <span class="pending-badge"><?= $result->num_rows ?> pending</span>
+            <?php endif; ?>
+        </h1>
     </section>
 
     <div class="container">
@@ -311,17 +361,6 @@ $result = $conn->query($sql);
                     <i class="fas fa-file-excel"></i>
                     Export to Excel
                 </button>
-                
-                <div class="page-size-control">
-                    <label for="pageSize">Show:</label>
-                    <select id="pageSize">
-                        <option value="10">10</option>
-                        <option value="25" selected>25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                    <span>entries</span>
-                </div>
             </div>
 
             <?php if ($result->num_rows > 0): ?>
@@ -332,6 +371,7 @@ $result = $conn->query($sql);
                             <th class="school-name-col">School Name</th>
                             <th class="contact-name-col">Contact Name</th>
                             <th class="contact-mobile-col">Contact Mobile</th>
+                            <th class="commitment-col">Commitment Statement</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -339,7 +379,7 @@ $result = $conn->query($sql);
                             <tr>
                                 <td>
                                     <div class="action-buttons">
-                                        <form style="display: inline;" action="move_to_schools.php" method="post" 
+                                        <form action="move_to_schools.php" method="post" 
                                               onsubmit="return confirm('Mark this school as Completed?');">
                                             <input type="hidden" name="school_id" value="<?= $row['id'] ?>">
                                             <button type="submit" class="action-btn btn-move" title="Mark as Completed">
@@ -354,7 +394,7 @@ $result = $conn->query($sql);
                                             Update
                                         </a>
                                         
-                                        <form style="display: inline;" action="delete_suggestion.php" method="post" 
+                                        <form action="delete_suggestion.php" method="post" 
                                               onsubmit="return confirm('Are you sure you want to delete this suggestion?');">
                                             <input type="hidden" name="school_id" value="<?= $row['id'] ?>">
                                             <button type="submit" class="action-btn btn-delete" title="Delete Suggestion">
@@ -367,6 +407,7 @@ $result = $conn->query($sql);
                                 <td><?= htmlspecialchars($row['name']) ?></td>
                                 <td><?= htmlspecialchars($row['contact_name']) ?></td>
                                 <td><?= htmlspecialchars($row['contact_phone']) ?></td>
+                                <td><div class="commitment-text" title="<?= htmlspecialchars($row['commitment_statement'] ?? '') ?>"><?= htmlspecialchars($row['commitment_statement'] ?? '—') ?></div></td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
@@ -385,96 +426,35 @@ $result = $conn->query($sql);
             // Initialize DataTable
             var table = $('#suggestionsTable').DataTable({
                 "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
-                "dom": 'rt<"d-flex justify-content-between"<"dataTables_info"i><"dataTables_paginate"p>>',
-                "responsive": false,
-                "scrollX": true,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
                 "autoWidth": false,
-                "order": [], // No default sorting since SQL already orders by latest
-                "columnDefs": [
-                    {
-                        "orderable": false,
-                        "targets": 0 // Actions column not sortable
-                    },
-                    {
-                        "width": "120px",
-                        "targets": 0 // Actions column width
-                    },
-                    {
-                        "width": "30%",
-                        "targets": 1 // School Name column width
-                    },
-                    {
-                        "width": "25%",
-                        "targets": 2 // Contact Name column width
-                    },
-                    {
-                        "width": "20%",
-                        "targets": 3 // Contact Mobile column width
-                    }
-                ],
+                "order": [],
+                "columnDefs": [{ "orderable": false, "targets": 0 }],
                 "language": {
-                    "emptyTable": "No suggested schools found",
                     "info": "Showing _START_ to _END_ of _TOTAL_ suggestions",
-                    "infoEmpty": "Showing 0 to 0 of 0 suggestions",
-                    "infoFiltered": "(filtered from _MAX_ total suggestions)"
+                    "infoEmpty": "No suggestions to show",
+                    "infoFiltered": "(filtered from _MAX_ total)"
                 }
             });
 
-            // Custom page size control
-            $('#pageSize').on('change', function() {
-                var pageSize = $(this).val();
-                table.page.len(pageSize).draw();
-            });
-
-            // Export to Excel functionality
             $('#exportExcel').on('click', function() {
-                // Get table data
-                var tableData = [];
-                
-                // Add headers (excluding Actions column)
-                var headers = ['School Name', 'Contact Name', 'Contact Mobile'];
-                tableData.push(headers);
-                
-                // Add data rows
+                var tableData = [['School Name', 'Contact Name', 'Contact Mobile', 'Commitment Statement']];
                 table.rows().every(function() {
-                    var data = this.data();
-                    var row = [data[1], data[2], data[3]]; // Skip Actions column (index 0)
-                    tableData.push(row);
+                    var d = this.data();
+                    tableData.push([d[1], d[2], d[3], d[4]]);
                 });
-                
-                // Convert to CSV format
-                var csvContent = tableData.map(function(row) {
+                var csv = tableData.map(function(row) {
                     return row.map(function(cell) {
-                        // Escape quotes and wrap in quotes if contains comma or quote
-                        if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
-                            return '"' + cell.replace(/"/g, '""') + '"';
-                        }
-                        return cell;
+                        var text = $('<div>').html(cell).text();
+                        return (text.includes(',') || text.includes('"')) ? '"' + text.replace(/"/g, '""') + '"' : text;
                     }).join(',');
                 }).join('\n');
-                
-                // Create and download file
-                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                var link = document.createElement("a");
-                
-                if (link.download !== undefined) {
-                    var url = URL.createObjectURL(blob);
-                    link.setAttribute("href", url);
-                    link.setAttribute("download", "suggested_schools_" + new Date().toISOString().split('T')[0] + ".csv");
-                    link.style.visibility = 'hidden';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-            });
-
-            // Add custom search functionality
-            var searchInput = $('<div class="dataTables_filter" style="margin-bottom: 20px;"><label>Search: <input type="search" class="form-control form-control-sm" placeholder="Search suggestions..." style="margin-left: 10px; display: inline-block; width: auto;"></label></div>');
-            searchInput.insertBefore('#suggestionsTable');
-            
-            searchInput.find('input').on('keyup', function() {
-                table.search(this.value).draw();
+                var link = document.createElement('a');
+                link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+                link.setAttribute('download', 'suggested_schools_' + new Date().toISOString().split('T')[0] + '.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             });
         });
     </script>

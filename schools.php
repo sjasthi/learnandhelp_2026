@@ -18,7 +18,7 @@ function get_profile_image($id)
 function get_summary_data($connection, $field)
 {
     $summary_data = [];
-    $sql = "SELECT $field, COUNT(*) as count FROM schools GROUP BY $field";
+    $sql = "SELECT $field, COUNT(*) as count FROM schools WHERE status != 'Proposed' GROUP BY $field";
     $result = mysqli_query($connection, $sql);
     if ($result) {
         while ($row = $result->fetch_assoc()) {

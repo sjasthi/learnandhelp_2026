@@ -44,7 +44,22 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
       display: flex;
       align-items: center;
       gap: 10px;
+      justify-content: space-between;
     }
+    .chat-header-left { display: flex; align-items: center; gap: 10px; }
+    .btn-clear-chat {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff;
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-clear-chat:hover { background: rgba(255,255,255,0.15); }
     .chat-header .dot-indicator {
       width: 10px; height: 10px;
       background: var(--accent);
@@ -188,8 +203,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
   <!-- Chat widget -->
   <div class="chat-container">
     <div class="chat-header">
-      <span class="dot-indicator"></span>
-      Learn and Help Schools Assistant
+      <div class="chat-header-left">
+        <span class="dot-indicator"></span>
+        Learn and Help Schools Assistant
+      </div>
+      <button class="btn-clear-chat" onclick="clearChat()">Clear Chat</button>
     </div>
     <div class="chat-messages" id="chatMessages">
       <div class="msg msg-bot">Hello! I can answer questions about the schools supported by Learn and Help. Try asking me something like "How many schools are supported?" or click one of the sample questions below.</div>
@@ -217,6 +235,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 const chatMessages = document.getElementById('chatMessages');
 const chatInput    = document.getElementById('chatInput');
 const sendBtn      = document.getElementById('sendBtn');
+
+const INITIAL_MSG = "Hello! I can answer questions about the schools supported by Learn and Help. Try asking me something like \"How many schools are supported?\" or click one of the sample questions below.";
+
+function clearChat() {
+  chatMessages.innerHTML = '';
+  addMessage(INITIAL_MSG, 'msg-bot');
+  chatInput.value = '';
+}
 
 function addMessage(text, type) {
   const div = document.createElement('div');
