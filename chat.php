@@ -213,7 +213,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
       <div class="msg msg-bot">Hello! I can answer questions about the schools supported by Learn and Help. Try asking me something like "How many schools are supported?" or click one of the sample questions below.</div>
     </div>
     <div class="chat-input-area">
-      <textarea id="chatInput" rows="1" placeholder="Ask a question about schools..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+      <textarea id="chatInput" rows="1" placeholder="Ask a question… (Shift+Enter for new line)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
       <button id="sendBtn" onclick="sendMessage()">Send</button>
     </div>
   </div>

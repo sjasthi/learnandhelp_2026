@@ -74,6 +74,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
             box-shadow: 0 2px 12px rgba(153, 217, 48, 0.05);
             border: 2px solid transparent;
             transition: box-shadow 0.2s, background 0.18s, border-color 0.22s;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
         }
         .admin_icon:hover, .admin_icon:focus-within {
             background: #edfae5;
@@ -124,103 +127,27 @@ show_navbar();
 </div>
 
 <div id="admin_icons">
-    
-       <div class="admin_icon">
-        <a href="admin_registrations.php"><img src="images/admin_icons/registrations_icon.png" alt="Registrations"></a>
-        <label>Registrations</label>
-    </div>
-    
-        <div class="admin_icon">
-        <a href="admin_usersList.php"><img src="images/admin_icons/users_icon.png" alt="Users"></a>
-        <label>Users</label>
-    </div>
-    
-    <div class="admin_icon">
-    <a href="admin_partners.php"><img src="images/admin_icons/partners_icon.png" alt="Partners"></a>
-    <label>Partners</label>
-   </div>
-    
-    <div class="admin_icon">
-        <a href="admin_reports.php"><img src="images/admin_icons/reports_icon.png" alt="Reports"></a>
-        <label>Reports</label>
-    </div>
-    
-    
-    <div class="admin_icon">
-        <a href="admin_events.php"><img src="images/admin_icons/events_icon.png" alt="Events"></a>
-        <label>Events</label>
-    </div>
-    
-    <div class="admin_icon">
-        <a href="admin_non_profits.php"><img src="images/admin_icons/non_profits_icon.png" alt="Non-Profits"></a>
-        <label>Non-Profits</label>
-    </div>
-    
-    
-    <div class="admin_icon">
-        <a href="admin_api.php"><img src="images/admin_icons/api.png" alt="API"></a>
-        <label>API</label>
-    </div>
-   
-    <div class="admin_icon">
-        <a href="admin_blogs.php"><img src="images/admin_icons/blogs_icon.png" alt="Blogs"></a>
-        <label>Blogs</label>
-    </div>
-    <div class="admin_icon">
-        <a href="books.php"><img src="images/admin_icons/books_icon.png" alt="Books"></a>
-        <label>Books</label>
-    </div>
-    <div class="admin_icon">
-        <a href="book_report_html.php"><img src="images/admin_icons/books_icon.png" alt="Books Report(HTML)"></a>
-        <label>Books Report (HTML)</label>
-    </div>
-    <div class="admin_icon">
-        <a href="admin_classes.php"><img src="images/admin_icons/class.png" alt="Classes"></a>
-        <label>Classes</label>
-    </div>
-    <div class="admin_icon">
-        <a href="admin_email_distribution.php"><img src="images/admin_icons/email.png" alt="Email Distribution"></a>
-        <label>Email Distribution</label>
-    </div>
-    <div class="admin_icon">
-        <a href="admin_notes.php"><img src="images/admin_icons/admin_notes.png" alt="Admin Notes"></a>
-        <label>Admin Notes</label>
-    </div>
-    <div class="admin_icon">
-        <a href="admin_offerings_CRUD.php"><img src="images/admin_icons/counting.png" alt="Offerings"></a>
-        <label>Offerings</label>
-    </div>
-    <div class="admin_icon">
-        <a href="admin_preferences_CRUD.php"><img src="images/admin_icons/control.png" alt="Preferences"></a>
-        <label>Preferences</label>
-    </div>
- 
-    
-    <div class="admin_icon">
-        <a href="admin_review_suggestions.php"><img src="images/admin_icons/review.jpg" alt="Suggested Schools"></a>
-        <label>Suggested Schools</label>
-    </div>
-    <div class="admin_icon">
-        <a href="admin_schools.php"><img src="images/admin_icons/school.png" alt="Schools"></a>
-        <label>Schools</label>
-    </div>
-    <div class="admin_icon">
-        <a href="school_report_html.php"><img src="images/admin_icons/school.png" alt="Schools Report (HTML)"></a>
-        <label>Schools Report (HTML)</label>
-    </div>
-    <div class="admin_icon">
-        <a href="admin_upload_csv.php"><img src="images/admin_icons/upload.png" alt="Upload"></a>
-        <label>Upload</label>
-    </div>
-
-    <div class="admin_icon">
-        <a href="whats_app.php"><img src="images/admin_icons/whats_app.png" alt="Whats App"></a>
-        <label>Whats App</label>
-    </div>
-    <div class="admin_icon">
-        <a href="instructors.php"><img src="images/admin_icons/instructor.png" alt="Instructors"></a>
-        <label>Instructors</label>
-    </div>
+    <a class="admin_icon" href="admin_registrations.php"><img src="images/admin_icons/registrations_icon.png" alt="Registrations"><label>Registrations</label></a>
+    <a class="admin_icon" href="admin_usersList.php"><img src="images/admin_icons/users_icon.png" alt="Users"><label>Users</label></a>
+    <a class="admin_icon" href="admin_partners.php"><img src="images/admin_icons/partners_icon.png" alt="Partners"><label>Partners</label></a>
+    <a class="admin_icon" href="admin_reports.php"><img src="images/admin_icons/reports_icon.png" alt="Reports"><label>Reports</label></a>
+    <a class="admin_icon" href="admin_events.php"><img src="images/admin_icons/events_icon.png" alt="Events"><label>Events</label></a>
+    <a class="admin_icon" href="admin_non_profits.php"><img src="images/admin_icons/non_profits_icon.png" alt="Non-Profits"><label>Non-Profits</label></a>
+    <a class="admin_icon" href="admin_api.php"><img src="images/admin_icons/api.png" alt="API"><label>API</label></a>
+    <a class="admin_icon" href="admin_blogs.php"><img src="images/admin_icons/blogs_icon.png" alt="Blogs"><label>Blogs</label></a>
+    <a class="admin_icon" href="books.php"><img src="images/admin_icons/books_icon.png" alt="Books"><label>Books</label></a>
+    <a class="admin_icon" href="book_report_html.php"><img src="images/admin_icons/books_icon.png" alt="Books Report (HTML)"><label>Books Report (HTML)</label></a>
+    <a class="admin_icon" href="admin_classes.php"><img src="images/admin_icons/class.png" alt="Classes"><label>Classes</label></a>
+    <a class="admin_icon" href="admin_email_distribution.php"><img src="images/admin_icons/email.png" alt="Email Distribution"><label>Email Distribution</label></a>
+    <a class="admin_icon" href="admin_notes.php"><img src="images/admin_icons/admin_notes.png" alt="Admin Notes"><label>Admin Notes</label></a>
+    <a class="admin_icon" href="admin_offerings_CRUD.php"><img src="images/admin_icons/counting.png" alt="Offerings"><label>Offerings</label></a>
+    <a class="admin_icon" href="admin_preferences_CRUD.php"><img src="images/admin_icons/control.png" alt="Preferences"><label>Preferences</label></a>
+    <a class="admin_icon" href="admin_review_suggestions.php"><img src="images/admin_icons/review.jpg" alt="Suggested Schools"><label>Suggested Schools</label></a>
+    <a class="admin_icon" href="admin_schools.php"><img src="images/admin_icons/school.png" alt="Schools"><label>Schools</label></a>
+    <a class="admin_icon" href="school_report_html.php"><img src="images/admin_icons/school.png" alt="Schools Report (HTML)"><label>Schools Report (HTML)</label></a>
+    <a class="admin_icon" href="admin_upload_csv.php"><img src="images/admin_icons/upload.png" alt="Upload"><label>Upload</label></a>
+    <a class="admin_icon" href="whats_app.php"><img src="images/admin_icons/whats_app.png" alt="Whats App"><label>Whats App</label></a>
+    <a class="admin_icon" href="instructors.php"><img src="images/admin_icons/instructor.png" alt="Instructors"><label>Instructors</label></a>
 </div>
 
 <div class="icon-attribution">

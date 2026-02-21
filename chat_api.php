@@ -71,19 +71,21 @@ function processQuestion($conn, $msg, $original) {
 
     // ── Total school count ──
     if (preg_match('/(how many|total|count).*(school|librar)/', $msg) && !containsFilter($msg)) {
-        $r = $conn->query("SELECT COUNT(*) as cnt FROM schools");
+        $r  = $conn->query("SELECT COUNT(*) as cnt FROM schools WHERE status = 'Completed'");
         $total = $r->fetch_assoc()['cnt'];
-        $r2 = $conn->query("SELECT status, COUNT(*) as cnt FROM schools GROUP BY status ORDER BY cnt DESC");
-        $parts = [];
-        while ($row = $r2->fetch_assoc()) {
-            $parts[] = ($row['status'] ?? 'Unknown') . ": " . $row['cnt'];
-        }
-        return "Learn and Help currently has $total schools in the program.\n\nBreakdown by status:\n• " . implode("\n• ", $parts);
+        $r2 = $conn->query("SELECT COUNT(*) as cnt FROM schools WHERE status = 'Proposed'");
+        $proposed = $r2->fetch_assoc()['cnt'];
+        $extra = $proposed > 0 ? " with $proposed additional schools nominated and under review." : ".";
+        return "Learn and Help currently supports $total active schools in the program$extra";
     }
 
     // ── Schools by status: Proposed ──
     if (preg_match('/(proposed|pending|suggested|awaiting)/', $msg)) {
-        return queryByStatus($conn, 'Proposed');
+        $r = $conn->query("SELECT COUNT(*) as cnt FROM schools WHERE status = 'Proposed'");
+        $cnt = $r->fetch_assoc()['cnt'];
+        return $cnt > 0
+            ? "There are currently $cnt schools nominated and awaiting admin review."
+            : "There are currently no schools awaiting review.";
     }
 
     // ── Schools by status: Completed ──
@@ -93,11 +95,11 @@ function processQuestion($conn, $msg, $original) {
 
     // ── Student count / enrollment ──
     if (preg_match('/(student|enrollment|enrol|served|children|kids)/', $msg)) {
-        $r = $conn->query("SELECT SUM(current_enrollment) as total, COUNT(*) as cnt FROM schools WHERE current_enrollment > 0");
+        $r = $conn->query("SELECT SUM(current_enrollment) as total, COUNT(*) as cnt FROM schools WHERE current_enrollment > 0 AND status = 'Completed'");
         $row = $r->fetch_assoc();
         $total = number_format($row['total'] ?? 0);
         $cnt = $row['cnt'];
-        $r2 = $conn->query("SELECT name, current_enrollment FROM schools WHERE current_enrollment > 0 ORDER BY current_enrollment DESC LIMIT 5");
+        $r2 = $conn->query("SELECT name, current_enrollment FROM schools WHERE current_enrollment > 0 AND status = 'Completed' ORDER BY current_enrollment DESC LIMIT 5");
         $top = [];
         while ($s = $r2->fetch_assoc()) {
             $top[] = $s['name'] . " (" . number_format($s['current_enrollment']) . " students)";
@@ -121,7 +123,7 @@ function processQuestion($conn, $msg, $original) {
 
     // ── How many states ──
     if (preg_match('/(how many|number of)\s*(states|regions)/', $msg)) {
-        $r = $conn->query("SELECT state_name, COUNT(*) as cnt FROM schools WHERE state_name IS NOT NULL GROUP BY state_name ORDER BY cnt DESC");
+        $r = $conn->query("SELECT state_name, COUNT(*) as cnt FROM schools WHERE state_name IS NOT NULL AND status = 'Completed' GROUP BY state_name ORDER BY cnt DESC");
         $states = [];
         while ($row = $r->fetch_assoc()) {
             $states[] = ($row['state_name'] ?? 'Unknown') . " (" . $row['cnt'] . ")";
@@ -135,7 +137,7 @@ function processQuestion($conn, $msg, $original) {
         return queryBySupportedBy($conn, $sponsor);
     }
     if (preg_match('/(supported|sponsored|funded)\s*by/', $msg)) {
-        $r = $conn->query("SELECT supported_by, COUNT(*) as cnt FROM schools WHERE supported_by IS NOT NULL GROUP BY supported_by ORDER BY cnt DESC");
+        $r = $conn->query("SELECT supported_by, COUNT(*) as cnt FROM schools WHERE supported_by IS NOT NULL AND status = 'Completed' GROUP BY supported_by ORDER BY cnt DESC");
         $list = [];
         while ($row = $r->fetch_assoc()) {
             $list[] = ($row['supported_by'] ?? 'Unknown') . ": " . $row['cnt'] . " schools";
@@ -145,7 +147,7 @@ function processQuestion($conn, $msg, $original) {
 
     // ── School types ──
     if (preg_match('/(type|types|kind|kinds)\s*(of)?\s*(school)?/', $msg)) {
-        $r = $conn->query("SELECT type, COUNT(*) as cnt FROM schools WHERE type IS NOT NULL GROUP BY type ORDER BY cnt DESC");
+        $r = $conn->query("SELECT type, COUNT(*) as cnt FROM schools WHERE type IS NOT NULL AND status = 'Completed' GROUP BY type ORDER BY cnt DESC");
         $types = [];
         while ($row = $r->fetch_assoc()) {
             $types[] = $row['type'] . ": " . $row['cnt'];
@@ -175,7 +177,7 @@ function processQuestion($conn, $msg, $original) {
 
     // ── Largest school / most students ──
     if (preg_match('/(largest|biggest|most\s*(students|enrolled|enrollment))/', $msg)) {
-        $r = $conn->query("SELECT name, state_name, current_enrollment, status FROM schools ORDER BY current_enrollment DESC LIMIT 5");
+        $r = $conn->query("SELECT name, state_name, current_enrollment FROM schools WHERE status = 'Completed' ORDER BY current_enrollment DESC LIMIT 5");
         $list = [];
         while ($row = $r->fetch_assoc()) {
             $list[] = $row['name'] . " — " . number_format($row['current_enrollment']) . " students (" . $row['state_name'] . ", " . $row['status'] . ")";
@@ -224,7 +226,7 @@ function queryByStatus($conn, $status) {
 
 function queryByState($conn, $stateInput) {
     $search = '%' . trim($stateInput) . '%';
-    $stmt = $conn->prepare("SELECT name, type, status, current_enrollment FROM schools WHERE LOWER(state_name) LIKE ? ORDER BY name");
+    $stmt = $conn->prepare("SELECT name, type, status, current_enrollment FROM schools WHERE LOWER(state_name) LIKE ? AND status = 'Completed' ORDER BY name");
     $stmt->bind_param("s", $search);
     $stmt->execute();
     $r = $stmt->get_result();
@@ -245,7 +247,7 @@ function queryByState($conn, $stateInput) {
 
 function queryByLocation($conn, $location) {
     $search = '%' . trim($location) . '%';
-    $stmt = $conn->prepare("SELECT name, state_name, type, status, current_enrollment FROM schools WHERE LOWER(name) LIKE ? OR LOWER(address_text) LIKE ? OR LOWER(state_name) LIKE ? ORDER BY name");
+    $stmt = $conn->prepare("SELECT name, state_name, type, status, current_enrollment FROM schools WHERE (LOWER(name) LIKE ? OR LOWER(address_text) LIKE ? OR LOWER(state_name) LIKE ?) AND status = 'Completed' ORDER BY name");
     $stmt->bind_param("sss", $search, $search, $search);
     $stmt->execute();
     $r = $stmt->get_result();
@@ -265,7 +267,7 @@ function queryByLocation($conn, $location) {
 }
 
 function queryBySupportedBy($conn, $sponsor) {
-    $stmt = $conn->prepare("SELECT name, state_name, status FROM schools WHERE supported_by = ? ORDER BY name");
+    $stmt = $conn->prepare("SELECT name, state_name, status FROM schools WHERE supported_by = ? AND status = 'Completed' ORDER BY name");
     $stmt->bind_param("s", $sponsor);
     $stmt->execute();
     $r = $stmt->get_result();
@@ -284,7 +286,7 @@ function queryBySupportedBy($conn, $sponsor) {
 }
 
 function queryByType($conn, $type) {
-    $stmt = $conn->prepare("SELECT name, state_name, status, current_enrollment FROM schools WHERE type = ? ORDER BY name");
+    $stmt = $conn->prepare("SELECT name, state_name, status, current_enrollment FROM schools WHERE type = ? AND status = 'Completed' ORDER BY name");
     $stmt->bind_param("s", $type);
     $stmt->execute();
     $r = $stmt->get_result();
@@ -299,11 +301,11 @@ function queryByType($conn, $type) {
     }
     $stmt->close();
     $display = $count <= 20 ? "\n\n• " . implode("\n• ", $list) : "\n\n• " . implode("\n• ", array_slice($list, 0, 20)) . "\n\n...and " . ($count - 20) . " more.";
-    return "There are $count ${type}s in the program:$display";
+    return "There are $count " . $type . "s in the program:$display";
 }
 
 function queryByCategory($conn, $category) {
-    $stmt = $conn->prepare("SELECT name, state_name, type, status FROM schools WHERE category = ? ORDER BY name");
+    $stmt = $conn->prepare("SELECT name, state_name, type, status FROM schools WHERE category = ? AND status = 'Completed' ORDER BY name");
     $stmt->bind_param("s", $category);
     $stmt->execute();
     $r = $stmt->get_result();
@@ -342,7 +344,7 @@ function searchSchool($conn, $msg, $original) {
         if (strpos($msg, $abbr) !== false) {
             // Search for the full name
             $search = '%' . $fullName . '%';
-            $stmt = $conn->prepare("SELECT name, state_name, type, category, status, supported_by, current_enrollment, contact_name FROM schools WHERE name LIKE ?");
+            $stmt = $conn->prepare("SELECT name, state_name, type, category, status, supported_by, current_enrollment, contact_name FROM schools WHERE name LIKE ? AND status = 'Completed'");
             $stmt->bind_param("s", $search);
             $stmt->execute();
             $r = $stmt->get_result();
@@ -370,7 +372,7 @@ function searchSchool($conn, $msg, $original) {
 
     // Search by name, address, contact
     $search = '%' . $cleanMsg . '%';
-    $stmt = $conn->prepare("SELECT name, state_name, type, category, status, supported_by, current_enrollment, contact_name FROM schools WHERE name LIKE ? OR address_text LIKE ? OR contact_name LIKE ? LIMIT 10");
+    $stmt = $conn->prepare("SELECT name, state_name, type, category, status, supported_by, current_enrollment, contact_name FROM schools WHERE (name LIKE ? OR address_text LIKE ? OR contact_name LIKE ?) AND status = 'Completed' LIMIT 10");
     $stmt->bind_param("sss", $search, $search, $search);
     $stmt->execute();
     $r = $stmt->get_result();
@@ -385,7 +387,7 @@ function searchSchool($conn, $msg, $original) {
     if (!empty($words)) {
         foreach ($words as $word) {
             $search = '%' . $word . '%';
-            $stmt = $conn->prepare("SELECT name, state_name, type, category, status, supported_by, current_enrollment, contact_name FROM schools WHERE name LIKE ? LIMIT 10");
+            $stmt = $conn->prepare("SELECT name, state_name, type, category, status, supported_by, current_enrollment, contact_name FROM schools WHERE name LIKE ? AND status = 'Completed' LIMIT 10");
             $stmt->bind_param("s", $search);
             $stmt->execute();
             $r = $stmt->get_result();
@@ -411,8 +413,9 @@ function formatSchoolResults($result, $searchTerm) {
     if (count($schools) === 1) {
         $s = $schools[0];
         $enroll = $s['current_enrollment'] > 0 ? number_format($s['current_enrollment']) . " students" : "Not reported";
-        return "Yes! " . $s['name'] . " is in the Learn and Help program.\n\n"
-             . "Details:\n"
+        $statusLine = ($s['status'] === 'Completed') ? "Yes! " . $s['name'] . " has an active library in the Learn and Help program." : $s['name'] . " is in the Learn and Help program (status: " . $s['status'] . ").";
+        return $statusLine . "\n\n"
+             . "\nDetails:\n"
              . "• State: " . ($s['state_name'] ?? 'N/A') . "\n"
              . "• Type: " . ($s['type'] ?? 'N/A') . "\n"
              . "• Category: " . ($s['category'] ?? 'N/A') . "\n"
