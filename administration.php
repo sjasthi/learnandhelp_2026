@@ -145,6 +145,7 @@ show_navbar();
     <a class="admin_icon" href="admin_review_suggestions.php"><img src="images/admin_icons/review.jpg" alt="Suggested Schools"><label>Suggested Schools</label></a>
     <a class="admin_icon" href="admin_schools.php"><img src="images/admin_icons/school.png" alt="Schools"><label>Schools</label></a>
     <a class="admin_icon" href="school_report_html.php"><img src="images/admin_icons/school.png" alt="Schools Report (HTML)"><label>Schools Report (HTML)</label></a>
+    <a class="admin_icon" href="admin_progress_report.php"><img src="images/admin_icons/reports_icon.png" alt="Progress Report"><label>Progress Report</label></a>
     <a class="admin_icon" href="admin_upload_csv.php"><img src="images/admin_icons/upload.png" alt="Upload"><label>Upload</label></a>
     <a class="admin_icon" href="whats_app.php"><img src="images/admin_icons/whats_app.png" alt="Whats App"><label>Whats App</label></a>
     <a class="admin_icon" href="instructors.php"><img src="images/admin_icons/instructor.png" alt="Instructors"><label>Instructors</label></a>
