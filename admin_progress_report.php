@@ -17,6 +17,11 @@ while ($row = $r->fetch_assoc()) {
     if ($row['Preference_Name'] === 'Active Registration') $activeBatch = $row['Value'];
 }
 
+// Clear session if user wants to upload a different file
+if (isset($_GET['reset'])) {
+    unset($_SESSION['progress_report']);
+}
+
 $preview   = isset($_SESSION['progress_report']) ? $_SESSION['progress_report'] : null;
 $error     = '';
 $courseName = '';
@@ -303,7 +308,7 @@ $conn->close();
       <form method="POST" action="admin_progress_report_send.php">
         <button type="submit" class="btn btn-send">&#9993; Send All Reports</button>
       </form>
-      <a href="admin_progress_report.php" style="color:#555;font-weight:600;text-decoration:none;">&#8592; Upload a different file</a>
+      <a href="admin_progress_report.php?reset=1" style="color:#555;font-weight:600;text-decoration:none;">&#8592; Upload a different file</a>
     </div>
   </div>
   <?php endif; ?>

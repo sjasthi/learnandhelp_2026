@@ -164,7 +164,15 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
                 <form action="admin_preferences_CRUD.php" method="POST">
                     <input type="hidden" name="Preference_Name" value="<?php echo $preference_name; ?>">
                     <label for="Value">Value:</label><br>
-                    <input type="text" id="Value" name="Value" value="<?php echo $row['Value']; ?>" required><br><br>
+                    <?php if ($preference_name === 'Email_Mode'): ?>
+                        <select id="Value" name="Value" required>
+                            <option value="DEV"  <?php echo $row['Value'] === 'DEV'  ? 'selected' : ''; ?>>DEV  — emails go to admin only</option>
+                            <option value="PROD" <?php echo $row['Value'] === 'PROD' ? 'selected' : ''; ?>>PROD — emails go to parents &amp; student</option>
+                        </select>
+                    <?php else: ?>
+                        <input type="text" id="Value" name="Value" value="<?php echo $row['Value']; ?>" required>
+                    <?php endif; ?>
+                    <br><br>
                     <input type="submit" name="edit" value="Submit">
                     <a href="admin_preferences_CRUD.php"><button type="button">Cancel</button></a>
                 </form>
