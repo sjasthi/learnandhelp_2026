@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Feb 28, 2026 at 05:52 PM
+-- Generation Time: Feb 28, 2026 at 06:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -111,32 +111,36 @@ CREATE TABLE `board_members` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `role` varchar(100) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `mobile` varchar(30) DEFAULT NULL,
   `bio` text DEFAULT NULL,
-  `credentials` varchar(255) DEFAULT NULL,
+  `notes` varchar(255) DEFAULT NULL,
   `location` varchar(100) DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
   `status` enum('active','inactive','tbd') DEFAULT 'active',
-  `sort_order` int(11) DEFAULT 0
+  `sort_order` int(11) DEFAULT 0,
+  `date_from` date DEFAULT NULL,
+  `date_to` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `board_members`
 --
 
-INSERT INTO `board_members` (`id`, `name`, `role`, `bio`, `credentials`, `location`, `image`, `status`, `sort_order`) VALUES
-(1, 'Dr. Siva Jasthi', 'President & Chief Instructor', 'Dr. Siva Jasthi is a software consultant at Siemens PLM, adjunct faculty at Metropolitan State University, and founder of several educational and cultural initiatives. With a Ph.D. from IIT Delhi and nearly three decades in the software industry, he has taught CS classes to over 2000 students. He authored over 10,000 Telugu puzzles and founded Learn and Help, where students learn coding while funding school libraries in India.', 'Ph.D. from IIT Delhi • Software Consultant • Adjunct Faculty', 'Minneapolis, MN, USA', 'images/board/siva_jasthi.png', 'active', 1),
-(2, 'Ishana Didwania', 'Director of Student Achievement', 'Ishana is a sophomore at Purdue University majoring in Computer Science and a Machine Learning intern at Humana, where she works on an AI knowledge surfacing voice agent for home health clinicians.', 'Computer Science Major, Purdue University • ML Intern at Humana', 'West Lafayette, IN, USA', 'images/board/ishana_didwania.png', 'active', 2),
-(3, 'Venkata (Bobby) Kodali', 'Director of Administration', 'Bobby is a seasoned technology professional with decades of experience designing and delivering reliable, scalable software solutions across industries, including healthcare.', 'Technology Consultant • Healthcare Software Expert', 'Woodbury, MN, USA', 'images/board/bobby_kodali.png', 'active', 3),
-(4, 'Varma Alluri', 'Director of Helping', 'Varma is a Data Architect with an Engineering Degree in Computer Science, originally from Eluru, Andhra Pradesh. He has a passion for teaching, particularly in Mathematics and Telugu.', 'Data Architect • Co-founder, Alamabana Foundation', 'Irvine, CA, USA', 'images/board/varma_alluri.png', 'active', 4),
-(5, 'Lakshmi Aparna Logisetti', 'Director of Technology', 'Aparna is a Senior Principal Engineer at Optum with over 18 years of experience in AI/ML, big data engineering, and cloud solutions.', 'Senior Principal Engineer, Optum • M.S. Data Science • M.A. Kuchipudi Dance', 'Location TBD', 'images/board/lakshi_aparna_logesetti.png', 'active', 5),
-(6, 'Dr. C.A. Prasad', 'Director of School Libraries', 'Dr. Prasad is a distinguished educationist and social activist with a lifelong commitment to schools, children, and transformative education.', 'Lifetime Achievement Award Winner • Educational Reformist • Social Activist', 'Ongole, AP, India', 'images/board/ca_prasad.png', 'active', 6),
-(7, 'TBD', 'Vice President', 'Assists the President and assumes duties in the President\'s absence.', NULL, NULL, NULL, 'tbd', 7),
-(8, 'TBD', 'Director of Learning', 'Oversees educational content quality, helps guide curriculum standards, supports instructors, and explores innovative approaches to student engagement.', NULL, NULL, NULL, 'tbd', 8),
-(9, 'TBD', 'Director of Finance', 'Manages finances, prepares budgets, and ensures compliance with financial obligations.', NULL, NULL, NULL, 'tbd', 9),
-(10, 'TBD', 'Director of Outreach', 'Responsible for expanding Learn and Help\'s network and partnerships, promoting public awareness.', NULL, NULL, NULL, 'tbd', 10),
-(11, 'TBD', 'Director of Communications', 'Manages Learn and Help\'s internal and external communications, including newsletters, website updates, and public relations.', NULL, NULL, NULL, 'tbd', 11),
-(12, 'TBD', 'Director of Enrollment', 'Manages the evaluation of prior learning and follows up with students and parents to ensure continuity of learning path.', NULL, NULL, NULL, 'tbd', 12),
-(13, 'Student Representative', 'Director of Student Leadership (LEAD Council)', 'We are seeking a student from our advanced classes to represent the student body and contribute to shaping Learn and Help\'s direction.', NULL, NULL, NULL, 'tbd', 13);
+INSERT INTO `board_members` (`id`, `name`, `role`, `email`, `mobile`, `bio`, `notes`, `location`, `image`, `status`, `sort_order`, `date_from`, `date_to`) VALUES
+(1, 'Dr. Siva Jasthi', 'President & Chief Instructor', NULL, NULL, 'Dr. Siva Jasthi is a software consultant at Siemens PLM, adjunct faculty at Metropolitan State University, and founder of several educational and cultural initiatives. With a Ph.D. from IIT Delhi and nearly three decades in the software industry, he has taught CS classes to over 2000 students. He authored over 10,000 Telugu puzzles and founded Learn and Help, where students learn coding while funding school libraries in India.', 'Ph.D. from IIT Delhi • Software Consultant • Adjunct Faculty', 'Minneapolis, MN, USA', 'images/board/siva_jasthi.png', 'active', 1, NULL, NULL),
+(2, 'Ishana Didwania', 'Director of Student Achievement', NULL, NULL, 'Ishana is a sophomore at Purdue University majoring in Computer Science and a Machine Learning intern at Humana, where she works on an AI knowledge surfacing voice agent for home health clinicians.', 'Computer Science Major, Purdue University • ML Intern at Humana', 'West Lafayette, IN, USA', 'images/board/ishana_didwania.png', 'active', 2, NULL, NULL),
+(3, 'Venkata (Bobby) Kodali', 'Director of Administration', NULL, NULL, 'Bobby is a seasoned technology professional with decades of experience designing and delivering reliable, scalable software solutions across industries, including healthcare.', 'Technology Consultant • Healthcare Software Expert', 'Woodbury, MN, USA', 'images/board/bobby_kodali.png', 'active', 3, NULL, NULL),
+(4, 'Varma Alluri', 'Director of Helping', NULL, NULL, 'Varma is a Data Architect with an Engineering Degree in Computer Science, originally from Eluru, Andhra Pradesh. He has a passion for teaching, particularly in Mathematics and Telugu.', 'Data Architect • Co-founder, Alamabana Foundation', 'Irvine, CA, USA', 'images/board/varma_alluri.png', 'active', 4, NULL, NULL),
+(5, 'Lakshmi Aparna Logisetti', 'Director of Technology', NULL, NULL, 'Aparna is a Senior Principal Engineer at Optum with over 18 years of experience in AI/ML, big data engineering, and cloud solutions.', 'Senior Principal Engineer, Optum • M.S. Data Science • M.A. Kuchipudi Dance', 'Location TBD', 'images/board/lakshi_aparna_logesetti.png', 'active', 5, NULL, NULL),
+(6, 'Dr. C.A. Prasad', 'Director of School Libraries', NULL, NULL, 'Dr. Prasad is a distinguished educationist and social activist with a lifelong commitment to schools, children, and transformative education.', 'Lifetime Achievement Award Winner • Educational Reformist • Social Activist', 'Ongole, AP, India', 'images/board/ca_prasad.png', 'active', 6, NULL, NULL),
+(7, 'TBD', 'Vice President', NULL, NULL, 'Assists the President and assumes duties in the President\'s absence.', NULL, NULL, NULL, 'tbd', 7, NULL, NULL),
+(8, 'TBD', 'Director of Learning', NULL, NULL, 'Oversees educational content quality, helps guide curriculum standards, supports instructors, and explores innovative approaches to student engagement.', NULL, NULL, NULL, 'tbd', 8, NULL, NULL),
+(9, 'TBD', 'Director of Finance', NULL, NULL, 'Manages finances, prepares budgets, and ensures compliance with financial obligations.', NULL, NULL, NULL, 'tbd', 9, NULL, NULL),
+(10, 'TBD', 'Director of Outreach', NULL, NULL, 'Responsible for expanding Learn and Help\'s network and partnerships, promoting public awareness.', NULL, NULL, NULL, 'tbd', 10, NULL, NULL),
+(11, 'TBD', 'Director of Communications', NULL, NULL, 'Manages Learn and Help\'s internal and external communications, including newsletters, website updates, and public relations.', NULL, NULL, NULL, 'tbd', 11, NULL, NULL),
+(12, 'TBD', 'Director of Enrollment', NULL, NULL, 'Manages the evaluation of prior learning and follows up with students and parents to ensure continuity of learning path.', NULL, NULL, NULL, 'tbd', 12, NULL, NULL),
+(13, 'Student Representative', 'Director of Student Leadership (LEAD Council)', NULL, NULL, 'We are seeking a student from our advanced classes to represent the student body and contribute to shaping Learn and Help\'s direction.', NULL, NULL, NULL, 'tbd', 13, NULL, NULL);
 
 -- --------------------------------------------------------
 

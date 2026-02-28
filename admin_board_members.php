@@ -119,7 +119,7 @@ if ($action === 'edit' && $id && $_SERVER['REQUEST_METHOD'] === 'GET') {
     .form-group.full { grid-column:1/-1; }
     .form-group label { font-weight:700; font-size:.9rem; color:#555; }
     .form-group input, .form-group select, .form-group textarea {
-      border:1px solid .con#ddd; border-radius:8px; padding:10px 14px;
+      border:1px solid #ddd; border-radius:8px; padding:10px 14px;
       font-family:'Montserrat',sans-serif; font-size:.95rem; color:#252525;
       transition:border-color .2s;
     }
