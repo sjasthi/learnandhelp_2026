@@ -6,31 +6,33 @@ require 'PHPMailer-master/src/Exception.php';
 require 'PHPMailer-master/src/PHPMailer.php';
 require 'PHPMailer-master/src/SMTP.php';
 
-define('MAIL_USERNAME', 'ICS499.LearnandHelp.2026@gmail.com');
-define('MAIL_PASSWORD', 'kdgi yisy njin maze');
-define('MAIL_FROM',     'ICS499.LearnandHelp.2026@gmail.com');
-define('MAIL_FROM_NAME', 'Learn and Help 2026');
-
 function sendEmail($recipient, $subject, $message) {
     $mail = new PHPMailer(true);
+
+    // SMTP Configuration
     $mail->isSMTP();
-    $mail->Host       = 'smtp.gmail.com';
-    $mail->SMTPAuth   = true;
-    $mail->Username   = MAIL_USERNAME;
-    $mail->Password   = MAIL_PASSWORD;
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = 'mekics499project24@gmail.com'; // Your Gmail address
+    $mail->Password = 'fwlphiafqwbzkubj'; // Your Gmail password
     $mail->SMTPSecure = 'ssl';
-    $mail->Port       = 465;
-    $mail->CharSet    = 'UTF-8';
-    $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+    $mail->Port = 465;
+
+    // Sender and recipient
+    $mail->setFrom('mekics499project24@gmail.com', 'no-reply@learnandhelp.com');
     $mail->addAddress($recipient);
+
+    // Content
     $mail->isHTML(true);
     $mail->Subject = $subject;
-    $mail->Body    = $message;
+    $mail->Body = $message;
+
+    // Send email
     try {
         $mail->send();
-        return true;
+        return true; // Email sent successfully
     } catch (Exception $e) {
-        return false;
+        return false; // Failed to send email
     }
 }
 
@@ -41,12 +43,11 @@ function sendProgressReport(array $toEmails, $ccEmail, $subject, $htmlBody) {
     $mail->isSMTP();
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
-    $mail->Username   = MAIL_USERNAME;
-    $mail->Password   = MAIL_PASSWORD;
+    $mail->Username   = 'mekics499project24@gmail.com';
+    $mail->Password   = 'fwlphiafqwbzkubj';
     $mail->SMTPSecure = 'ssl';
     $mail->Port       = 465;
-    $mail->CharSet    = 'UTF-8';
-    $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+    $mail->setFrom('mekics499project24@gmail.com', 'Learn and Help');
     foreach ($toEmails as $addr) {
         if (!empty(trim($addr))) { $mail->addAddress(trim($addr)); }
     }

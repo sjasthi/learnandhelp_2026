@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Feb 26, 2026 at 12:53 AM
+-- Generation Time: Feb 27, 2026 at 03:21 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3774,7 +3774,8 @@ INSERT INTO `preferences` (`Preference_Name`, `Value`) VALUES
 ('Active Registration', '2024-2025'),
 ('Course Fee', '500'),
 ('OPENAI_API_KEY', ''),
-('KEYWORDS', 'schools, books, libraries, reading');
+('KEYWORDS', 'schools, books, libraries, reading'),
+('Email_Mode', 'DEV');
 
 -- --------------------------------------------------------
 
@@ -3951,7 +3952,38 @@ INSERT INTO `registrations` (`Reg_Id`, `offering_id`, `Sponsor1_Name`, `Sponsor1
 (208, 6, 'Sits naga lakshmi Pathuri', 'psnlakhmi@gmail.com', '2146051960', 'Lakshmi', 'psnlakhmi@gmail.com', '', 1, '0000-00-00', '2025-10-22', '2025-2026', 157, '/learnandhelp/images/banner_images/Classes/avatar.jpg', 'No', NULL, 'Python 101', 'Sree Balaji High School', '', '', '', 'void', 0, ''),
 (209, 6, 'Swathi Kommuri', 'swathipramod.k@gmail.com', '9377169490', 'Rishik kollu', 'swathipramod.k@gmail.com', '9377169490', 1, '0000-00-00', '2025-10-23', '2025-2026', 156, '/learnandhelp/images/banner_images/Classes/avatar.jpg', 'No', NULL, 'Python 101', '', 'Carmel Middle school,  Kristen Irwin( Robotics camp)', '', '', 'paid', 600, ''),
 (210, 7, 'Usha Kiran Korukonda', 'kiran.usha.k@gmail.com', '9255743316', 'Nikhil', 'sainikhil092009@gmail.com', '', 1, '0000-00-00', '2025-10-30', '2025-2026', 158, '/learnandhelp/images/banner_images/Classes/avatar.jpg', 'No', '10', 'Python 101', '', 'Shaan (Nikhil\'s Schoolmate)', '', 'Shaan', 'paid', 600, ''),
-(211, 7, 'Sathish Amba', 'sathish.amba@gmail.com', '5157108546', 'Advaith Amba', 'm2advaith@gmail.com', '', 1, '0000-00-00', '2025-11-02', '2025-2026', 159, '/learnandhelp/images/banner_images/Classes/avatar.jpg', 'No', NULL, 'Python 101', '', '', '', 'Thiru', 'paid', 600, '');
+(211, 7, 'Sathish Amba', 'sathish.amba@gmail.com', '5157108546', 'Advaith Amba', 'm2advaith@gmail.com', '', 1, '0000-00-00', '2025-11-02', '2025-2026', 159, '/learnandhelp/images/banner_images/Classes/avatar.jpg', 'No', NULL, 'Python 101', '', '', '', 'Thiru', 'paid', 600, ''),
+(212, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Abhinav sai Manikonda', 'xbhinxvsximxnikoncx@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(213, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Aditi Boggarapu', 'xcitibog@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(214, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Advaith Amba', 'm2xcvxith@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(215, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Agastya Ivaturi', 'xgxstyxivxturi@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(216, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Anay Bhagatwala', 'xnxybhxgxtwxlx@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(217, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Aneesh Habbu', 'xneesh.hxbbu@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(218, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Arjun Kadiyala', 'xkxciyxlx02@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(219, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Dhruvan Teja Talapaneni', 'chruvxntejx.txlxpxneni@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(220, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Haasini Kondisetti', 'hxxsini.koncisetti@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(221, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Kandula Vasavi', 'vxsxvikxnculx9@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(222, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Krishna Aluri', 'xlurikrish2012@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(223, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Meghana Burra', 'meghxnxkburrx@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(224, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Mohith', 'mohito90094@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(225, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Mohnish Yakkanti', 'mohnish.yxkkxnti@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(226, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Nainika Sai Karumudi', 'nskxrumuci@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(227, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Nandini Kondisetti', 'nxncini.koncisetti@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(228, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Nathaniel Chacko', 'nxtechxcko@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(229, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Nik FR', 'sxinikhil092009@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(230, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Pari G', 'pxrinichi.gollxpuci@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(231, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Prateek Rathikindi', 'prxteek.rxthikinci@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(232, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Rishik Kollu', 'kollurishik@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(233, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Shriyan Deshmukh', 'shriyxn.ceshmukh@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(234, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Srihita Ganti', 'gxntisrihitx@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(235, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Subodha Popuri', 'subochxpopuri@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(236, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Swara Lokhande', 'veenxlokhxnce17@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(237, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Varun Aditya Nanduri', 'nxncurivxrunxcityx@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(238, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Vik Manda', 'vikrxntmxncx002@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(239, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Yaswanth Grandhi', 'yxswxnthgrxnchi1@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(240, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Pesky Bird', 'prish.prish.thxkkxr@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(241, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Shilpa Sunkara', 'shilpx.sssr@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL),
+(242, 6, 'Test Parent', 'mekics499project24@gmail.com', NULL, 'Vishwak Guntupalli', 'guntupxllivishwxk@gmxil.com', NULL, 1, NULL, '2026-02-26', '2025-2026', NULL, 'images/banner_images/Classes/avatar.jpg', 'No', NULL, NULL, NULL, NULL, '', NULL, 'paid', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -4196,7 +4228,8 @@ INSERT INTO `schools` (`id`, `dise_no`, `name`, `type`, `category`, `grade_level
 (221, NULL, 'Test School ABC', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Professor John Doe', NULL, '555-555-5555', NULL, 'Completed', 'Testing', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-12 02:49:24', '2026-02-12 02:49:53'),
 (222, NULL, 'Babbitt High', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Professor Phillip', NULL, '123-456-7890', NULL, 'Proposed', 'test', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-19 00:59:07', '2026-02-19 00:59:07'),
 (223, NULL, 'Irondale High School', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Dr. Amber Smith', NULL, '999-888-7777', NULL, 'Proposed', 'This is a testing school, Please approve.', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-21 16:45:55', '2026-02-21 16:45:55'),
-(224, NULL, 'School1111', 'Upper Primary School', 'Other', 8, 10, 0, '45 Jefferson St.', 'Minnesota', 'US', '', 'Dr. Cole Amber', 'Teacher', '456-789-1234', 'newcontact@learnandhelp.com', 'Proposed', NULL, 'Test', '', NULL, 'Learn and Help', NULL, '2026-02-21 16:50:02', '2026-02-21 16:50:02');
+(224, NULL, 'School1111', 'Upper Primary School', 'Other', 8, 10, 0, '45 Jefferson St.', 'Minnesota', 'US', '', 'Dr. Cole Amber', 'Teacher', '456-789-1234', 'newcontact@learnandhelp.com', 'Proposed', NULL, 'Test', '', NULL, 'Learn and Help', NULL, '2026-02-21 16:50:02', '2026-02-21 16:50:02'),
+(225, NULL, 'Testing school', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Test', NULL, '555-555-5555', NULL, 'Proposed', 'test', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-26 02:36:49', '2026-02-26 02:36:49');
 
 -- --------------------------------------------------------
 
@@ -4455,13 +4488,13 @@ ALTER TABLE `recommended_orgs`
 -- AUTO_INCREMENT for table `registrations`
 --
 ALTER TABLE `registrations`
-  MODIFY `Reg_Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=212;
+  MODIFY `Reg_Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=243;
 
 --
 -- AUTO_INCREMENT for table `schools`
 --
 ALTER TABLE `schools`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'school id', AUTO_INCREMENT=225;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'school id', AUTO_INCREMENT=226;
 
 --
 -- AUTO_INCREMENT for table `users`
