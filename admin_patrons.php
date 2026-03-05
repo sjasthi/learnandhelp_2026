@@ -343,7 +343,7 @@ show_navbar();
 
 <div class="page-wrap">
 
-    <a href="admin.php" class="back-link">&#8592; Back to Administration</a>
+    <a href="administration.php" class="back-link">&#8592; Back to Administration</a>
 
     <?php if ($message): ?>
         <div class="flash <?= htmlspecialchars($message_type) ?>">
