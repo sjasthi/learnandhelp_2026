@@ -150,6 +150,7 @@ show_navbar();
     <a class="admin_icon" href="whats_app.php"><img src="images/admin_icons/whats_app.png" alt="Whats App"><label>Whats App</label></a>
     <a class="admin_icon" href="instructors.php"><img src="images/admin_icons/instructor.png" alt="Instructors"><label>Instructors</label></a>
     <a class="admin_icon" href="admin_board_members.php"><img src="images/admin_icons/users_icon.png" alt="Board Members"><label>Board Members</label></a>
+        <a class="admin_icon" href="admin_patrons.php"><img src="images/admin_icons/patron_icon.png" alt="Patron"><label>Patron</label></a>
 </div>
 
 <div class="icon-attribution">
