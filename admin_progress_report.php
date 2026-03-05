@@ -22,6 +22,19 @@ if (isset($_GET['reset'])) {
     unset($_SESSION['progress_report']);
 }
 
+// ── Handle mode toggle ────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_mode'])) {
+    $newMode = $_POST['set_mode'] === 'PROD' ? 'PROD' : 'DEV';
+    $conn->query("UPDATE preferences SET Value='$newMode' WHERE Preference_Name='Email_Mode'");
+    $emailMode = $newMode;
+    // Update session so preview reflects the new mode immediately
+    if (isset($_SESSION['progress_report'])) {
+        $_SESSION['progress_report']['emailMode'] = $newMode;
+    }
+    header('Location: admin_progress_report.php');
+    exit;
+}
+
 $preview   = isset($_SESSION['progress_report']) ? $_SESSION['progress_report'] : null;
 $error     = '';
 $courseName = '';
@@ -169,13 +182,25 @@ $conn->close();
     .intro-banner { background: #1a1a1a; color: #fff; text-align: center; padding: 24px 20px 20px; }
     .intro-banner h1 { font-size: 3rem; font-weight: 900; margin: 0; }
     .accent-text { color: var(--accent); }
-    .page-wrap { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+    .page-wrap { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
     .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.08); padding: 36px; margin-bottom: 30px; }
 
     /* Mode badge */
     .mode-badge { display: inline-block; padding: 4px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; margin-left: 12px; vertical-align: middle; }
     .mode-dev  { background: #e65100; color: #fff; }
     .mode-prod { background: #2e7d32; color: #fff; }
+
+    /* Mode toggle */
+    .mode-toggle { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .mode-toggle > span { font-weight: 700; font-size: 0.95rem; color: #555; }
+    .mode-btn { padding: 10px 28px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; background: #f4f4f4; color: #bbb; transition: all 0.2s; opacity: 0.5; }
+    .mode-btn.active-dev  { background: #e65100; color: #fff; border-color: #e65100; opacity: 1; box-shadow: 0 3px 10px rgba(230,81,0,.35); }
+    .mode-btn.active-prod { background: #2e7d32; color: #fff; border-color: #2e7d32; opacity: 1; box-shadow: 0 3px 10px rgba(46,125,50,.35); }
+    .mode-alert { padding: 14px 20px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px; }
+    .mode-alert-dev  { background: #fff3e0; border: 2px solid #e65100; color: #bf360c; }
+    .mode-alert-prod { background: #e8f5e9; border: 2px solid #2e7d32; color: #1b5e20; }
+    .mode-alert .mode-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; }
+    .mode-alert .mode-text strong { display: block; font-size: 1rem; margin-bottom: 3px; }
 
     /* Upload form */
     .upload-label { font-weight: 700; display: block; margin-bottom: 10px; font-size: 1.05rem; }
@@ -198,6 +223,9 @@ $conn->close();
     .cross  { color: #d32f2f; font-weight: 700; }
     .badge-missing { background: #ffe6e6; color: #d32f2f; border-radius: 10px; padding: 2px 8px; font-size: 0.8rem; font-weight: 700; }
     .email-list { font-size: 0.8rem; color: #555; }
+    .col-actions { white-space: nowrap; position: sticky; right: 0; background: #fff; box-shadow: -3px 0 8px rgba(0,0,0,.06); }
+    .preview-table thead th:last-child { position: sticky; right: 0; background: #1a1a1a; box-shadow: -3px 0 8px rgba(0,0,0,.15); }
+    .preview-table tr:hover td.col-actions { background: #f8f8f8; }
   </style>
 </head>
 <body>
@@ -216,15 +244,36 @@ $conn->close();
   <!-- Upload card -->
   <?php if (!$preview): ?>
   <div class="card">
-    <h2 style="margin-top:0;">Upload Google Classroom Grades CSV
-      <span class="mode-badge <?= $emailMode === 'DEV' ? 'mode-dev' : 'mode-prod' ?>">
-        <?= htmlspecialchars($emailMode) ?> MODE
-      </span>
-    </h2>
-    <p style="color:#555;">Export the grades CSV from Google Classroom and upload it here. The student email column will be matched against registered students.</p>
+    <h2 style="margin-top:0;">Upload Google Classroom Grades CSV</h2>
+
+    <div class="mode-toggle">
+      <span>Email Mode:</span>
+      <form method="POST" style="display:contents;">
+        <button type="submit" name="set_mode" value="DEV"
+          class="mode-btn <?= $emailMode === 'DEV' ? 'active-dev' : '' ?>">DEV</button>
+        <button type="submit" name="set_mode" value="PROD"
+          class="mode-btn <?= $emailMode === 'PROD' ? 'active-prod' : '' ?>">PROD</button>
+      </form>
+    </div>
     <?php if ($emailMode === 'DEV'): ?>
-      <p style="color:#e65100;font-weight:600;">⚠ DEV mode: all emails will be sent only to the admin address. Change to PROD in Preferences when ready to send to parents.</p>
+    <div class="mode-alert mode-alert-dev">
+      <div class="mode-icon">⚠️</div>
+      <div class="mode-text">
+        <strong>DEV Mode — Test Only</strong>
+        All emails will be sent only to the admin inbox. Parents and students will NOT receive anything.
+      </div>
+    </div>
+    <?php else: ?>
+    <div class="mode-alert mode-alert-prod">
+      <div class="mode-icon">✅</div>
+      <div class="mode-text">
+        <strong>PROD Mode — Live Send</strong>
+        Emails will be sent to the student's parent(s) and the student directly. Admin will be CC'd.
+      </div>
+    </div>
     <?php endif; ?>
+
+    <p style="color:#555;">Export the grades CSV from Google Classroom and upload it here. The student email column will be matched against registered students.</p>
     <form method="POST" enctype="multipart/form-data">
       <label class="upload-label" for="csv_file">Select CSV file:</label>
       <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
@@ -236,19 +285,39 @@ $conn->close();
   <?php else: ?>
   <!-- Preview card -->
   <div class="card">
-    <h2 style="margin-top:0;">Preview — <?= htmlspecialchars($preview['courseName']) ?>
-      <span class="mode-badge <?= $preview['emailMode'] === 'DEV' ? 'mode-dev' : 'mode-prod' ?>">
-        <?= htmlspecialchars($preview['emailMode']) ?> MODE
-      </span>
-    </h2>
+    <h2 style="margin-top:0;">Preview — <?= htmlspecialchars($preview['courseName']) ?></h2>
+
+    <div class="mode-toggle">
+      <span>Email Mode:</span>
+      <form method="POST" style="display:contents;">
+        <button type="submit" name="set_mode" value="DEV"
+          class="mode-btn <?= $preview['emailMode'] === 'DEV' ? 'active-dev' : '' ?>">DEV</button>
+        <button type="submit" name="set_mode" value="PROD"
+          class="mode-btn <?= $preview['emailMode'] === 'PROD' ? 'active-prod' : '' ?>">PROD</button>
+      </form>
+    </div>
+    <?php if ($preview['emailMode'] === 'DEV'): ?>
+    <div class="mode-alert mode-alert-dev">
+      <div class="mode-icon">⚠️</div>
+      <div class="mode-text">
+        <strong>DEV Mode — Test Only</strong>
+        All emails will be sent only to the admin inbox. Parents and students will NOT receive anything.
+      </div>
+    </div>
+    <?php else: ?>
+    <div class="mode-alert mode-alert-prod">
+      <div class="mode-icon">✅</div>
+      <div class="mode-text">
+        <strong>PROD Mode — Live Send</strong>
+        Emails will be sent to the student's parent(s) and the student directly. Admin will be CC'd.
+      </div>
+    </div>
+    <?php endif; ?>
+
     <p style="color:#555;">
       <strong><?= count($preview['assignments']) ?></strong> assignments &nbsp;|&nbsp;
       <strong><?= count($preview['students']) ?></strong> students found in CSV
     </p>
-
-    <?php if ($preview['emailMode'] === 'DEV'): ?>
-      <p style="color:#e65100;font-weight:600;">⚠ DEV mode: all emails will be delivered only to the admin address.</p>
-    <?php endif; ?>
 
     <div style="overflow-x:auto;">
     <table class="preview-table">
@@ -292,8 +361,12 @@ $conn->close();
               <span class="check">All submitted</span>
             <?php endif; ?>
           </td>
-          <td>
-            <form method="POST" action="admin_progress_report_send.php">
+          <td class="col-actions">
+            <a href="admin_progress_report_preview.php?student_index=<?= $i ?>" target="_blank"
+               style="display:inline-block;padding:6px 14px;font-size:0.8rem;font-weight:700;font-family:'Montserrat',sans-serif;background:#f4f4f4;color:#252525;border:2px solid #ddd;border-radius:8px;text-decoration:none;margin-right:6px;">
+              &#128065; Preview
+            </a>
+            <form method="POST" action="admin_progress_report_send.php" style="display:inline;">
               <input type="hidden" name="student_index" value="<?= $i ?>">
               <button type="submit" class="btn btn-send" style="padding:6px 14px;font-size:0.8rem;">&#9993; Send</button>
             </form>

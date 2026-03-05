@@ -50,7 +50,7 @@ function buildReportHtml($courseName, $studentName, $assignments, $scores, $emai
     return '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f8f8f8;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;padding:30px 0;">
       <tr><td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.10);">
+        <table width="800" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.10);">
           <!-- Header -->
           <tr><td style="background:#1a1a1a;padding:28px 36px;">
             <span style="font-size:1.6rem;font-weight:900;color:#99D930;letter-spacing:1px;">Learn</span>
