@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3307
--- Generation Time: Feb 28, 2026 at 10:09 PM
+-- Host: 127.0.0.1
+-- Generation Time: Mar 06, 2026 at 01:07 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3795,6 +3795,28 @@ INSERT INTO `offerings` (`offering_id`, `Batch_Name`, `day_of_week`, `start_time
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `patrons`
+--
+
+CREATE TABLE `patrons` (
+  `id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `mobile` varchar(30) DEFAULT NULL,
+  `event_info` varchar(255) DEFAULT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `patrons`
+--
+
+INSERT INTO `patrons` (`id`, `name`, `email`, `mobile`, `event_info`, `date_created`) VALUES
+(4, 'Jasthi Siva', 'JSiva@gmail.com', '000-000-0000', 'Metropolitan State University open house', '2026-03-05 00:00:00');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `preferences`
 --
 
@@ -4445,6 +4467,13 @@ ALTER TABLE `offerings`
   ADD KEY `fk_offerings_class` (`Class_Id`);
 
 --
+-- Indexes for table `patrons`
+--
+ALTER TABLE `patrons`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_patron_email` (`email`);
+
+--
 -- Indexes for table `recommended_orgs`
 --
 ALTER TABLE `recommended_orgs`
@@ -4530,6 +4559,12 @@ ALTER TABLE `instructor`
 --
 ALTER TABLE `offerings`
   MODIFY `offering_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `patrons`
+--
+ALTER TABLE `patrons`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `recommended_orgs`
