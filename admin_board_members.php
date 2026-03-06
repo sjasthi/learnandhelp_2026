@@ -3,10 +3,8 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/db_configuration.php';
 
-// Admin check - adjust this to match your existing admin check
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: login.php');
-    exit;
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    http_response_code(403); die('Forbidden');
 }
 
 $message = '';
