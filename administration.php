@@ -151,6 +151,8 @@ show_navbar();
     <a class="admin_icon" href="instructors.php"><img src="images/admin_icons/instructor.png" alt="Instructors"><label>Instructors</label></a>
     <a class="admin_icon" href="admin_board_members.php"><img src="images/admin_icons/users_icon.png" alt="Board Members"><label>Board Members</label></a>
         <a class="admin_icon" href="admin_patrons.php"><img src="images/admin_icons/patron_icon.png" alt="Patron"><label>Patron</label></a>
+        <a class="admin_icon" href="admin_assets.php"><img src="images/admin_icons/assign.png" alt="Assets"><label>Assets</label></a>
+        <a class="admin_icon" href="admin_assets_report.php"><img src="images/admin_icons/reports_icon.png" alt="Assets Report"><label>Assets Report</label></a>
 </div>
 
 <div class="icon-attribution">
