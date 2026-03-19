@@ -85,10 +85,19 @@ $sort     = isset($_GET['sort'])   ? $_GET['sort']         : 'date_created';
 $dir      = isset($_GET['dir'])    ? $_GET['dir']          : 'DESC';
 
 // Whitelist to prevent SQL injection
-$allowed_sort = ['name', 'date_created'];
+$allowed_sort = ['name', 'email', 'mobile', 'date_created'];
 $allowed_dir  = ['ASC', 'DESC'];
 if (!in_array($sort, $allowed_sort)) $sort = 'date_created';
 if (!in_array($dir,  $allowed_dir))  $dir  = 'DESC';
+
+// Helper: build a sortable column header link
+function sort_link($col, $label, $sort, $dir, $search) {
+    $next_dir = ($sort === $col && $dir === 'ASC') ? 'DESC' : 'ASC';
+    $arrow    = ($sort === $col) ? ($dir === 'ASC' ? ' &#9650;' : ' &#9660;') : ' &#8597;';
+    $qs       = '?sort=' . $col . '&dir=' . $next_dir . ($search ? '&search=' . urlencode($search) : '');
+    return '<a href="admin_patrons.php' . $qs . '" style="color:#274606;text-decoration:none;white-space:nowrap;font-weight:900;">'
+         . $label . $arrow . '</a>';
+}
 
 $patrons = [];
 
@@ -448,21 +457,11 @@ show_navbar();
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>
-                            <?php
-                                $name_dir    = ($sort === 'name' && $dir === 'ASC') ? 'DESC' : 'ASC';
-                                $name_arrow  = ($sort === 'name') ? ($dir === 'ASC' ? ' ▲' : ' ▼') : ' ↕';
-                                $name_search = $search ? '&search=' . urlencode($search) : '';
-                            ?>
-                            <a href="admin_patrons.php?sort=name&dir=<?= $name_dir . $name_search ?>"
-                               style="color:#274606; text-decoration:none; white-space:nowrap;">
-                                Name<?= $name_arrow ?>
-                            </a>
-                        </th>
-                        <th>Email</th>
-                        <th>Mobile</th>
+                        <th><?= sort_link('name',         'Name',     $sort, $dir, $search) ?></th>
+                        <th><?= sort_link('email',        'Email',    $sort, $dir, $search) ?></th>
+                        <th><?= sort_link('mobile',       'Mobile',   $sort, $dir, $search) ?></th>
                         <th>Event / Booth</th>
-                        <th>Date Met</th>
+                        <th><?= sort_link('date_created', 'Date Met', $sort, $dir, $search) ?></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
