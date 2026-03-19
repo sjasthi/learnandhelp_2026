@@ -80,7 +80,16 @@ if (isset($_GET['edit'])) {
 }
 
 // ── SEARCH / LIST ────────────────────────────────────────────
-$search  = isset($_GET['search']) ? trim($_GET['search']) : '';
+$search   = isset($_GET['search']) ? trim($_GET['search']) : '';
+$sort     = isset($_GET['sort'])   ? $_GET['sort']         : 'date_created';
+$dir      = isset($_GET['dir'])    ? $_GET['dir']          : 'DESC';
+
+// Whitelist to prevent SQL injection
+$allowed_sort = ['name', 'date_created'];
+$allowed_dir  = ['ASC', 'DESC'];
+if (!in_array($sort, $allowed_sort)) $sort = 'date_created';
+if (!in_array($dir,  $allowed_dir))  $dir  = 'DESC';
+
 $patrons = [];
 
 if ($search !== '') {
@@ -88,11 +97,11 @@ if ($search !== '') {
     $stmt = $db->prepare("
         SELECT * FROM patrons
         WHERE name LIKE ? OR email LIKE ? OR mobile LIKE ? OR event_info LIKE ?
-        ORDER BY date_created DESC
+        ORDER BY $sort $dir
     ");
     $stmt->bind_param("ssss", $like, $like, $like, $like);
 } else {
-    $stmt = $db->prepare("SELECT * FROM patrons ORDER BY date_created DESC");
+    $stmt = $db->prepare("SELECT * FROM patrons ORDER BY $sort $dir");
 }
 
 $stmt->execute();
@@ -439,7 +448,17 @@ show_navbar();
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Name</th>
+                        <th>
+                            <?php
+                                $name_dir    = ($sort === 'name' && $dir === 'ASC') ? 'DESC' : 'ASC';
+                                $name_arrow  = ($sort === 'name') ? ($dir === 'ASC' ? ' ▲' : ' ▼') : ' ↕';
+                                $name_search = $search ? '&search=' . urlencode($search) : '';
+                            ?>
+                            <a href="admin_patrons.php?sort=name&dir=<?= $name_dir . $name_search ?>"
+                               style="color:#274606; text-decoration:none; white-space:nowrap;">
+                                Name<?= $name_arrow ?>
+                            </a>
+                        </th>
                         <th>Email</th>
                         <th>Mobile</th>
                         <th>Event / Booth</th>
