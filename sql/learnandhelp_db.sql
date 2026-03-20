@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3307
--- Generation Time: Mar 20, 2026 at 02:27 AM
+-- Host: 127.0.0.1
+-- Generation Time: Mar 20, 2026 at 02:59 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4382,12 +4382,7 @@ INSERT INTO `schools` (`id`, `dise_no`, `name`, `type`, `category`, `grade_level
 (217, NULL, 'MPUP School (Lemellapadu)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Pasupuleti Sridhar', NULL, '98485 60727', NULL, 'Proposed', 'హెడ్ మాస్టర్ పసుపులేటి శ్రీధర్ గారు.\r\n98485 60727\r\nమండల పరిషత్ ప్రాథమికోన్నత పాఠశాల (mpup school)\r\nలేమల్లెపాడు \r\nవట్టిచెరుకూరు మండలం\r\nగుంటూరు జిల్లా\r\n\r\nReferred by: Modugula Ravi Krishna garu', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-29 08:46:18', '2026-01-24 00:52:45'),
 (218, NULL, 'MPUP School (Pakalapadu)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'P.S.Raju', NULL, '8897534843', NULL, 'Proposed', 'P. SATYANARAYANA RAJU	\r\n8897534843	\r\n1980psraju@gmail.com	\r\nM. P. U. P, School, \r\nPakalapadu(village), \r\nSattenapalli(Mandal ), \r\nPalnadu(Dist)522403)        ', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-29 18:33:08', '2026-01-24 00:52:45'),
 (219, NULL, 'Viswakavi Residential Public School (Chinnaram)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Rajeswari Penmasta  (Ramaraju Alluri)', NULL, '6512710678', NULL, 'Proposed', 'Viswakavi Residential Public School\r\nChinnamiram, Bhimavaram\r\nAP 534204', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-30 07:17:12', '2026-01-24 00:52:45'),
-(220, NULL, 'ZPHS (Rama Samudram)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Srinivas Sakhamuri', NULL, '+919441075753', NULL, 'Proposed', 'Zphs, rama samudram, tripurantakam mandal, A.P', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-30 07:18:39', '2026-01-24 00:52:45'),
-(221, NULL, 'Test School ABC', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Professor John Doe', NULL, '555-555-5555', NULL, 'Completed', 'Testing', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-12 02:49:24', '2026-02-12 02:49:53'),
-(222, NULL, 'Babbitt High', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Professor Phillip', NULL, '123-456-7890', NULL, 'Proposed', 'test', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-19 00:59:07', '2026-02-19 00:59:07'),
-(223, NULL, 'Irondale High School', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Dr. Amber Smith', NULL, '999-888-7777', NULL, 'Proposed', 'This is a testing school, Please approve.', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-21 16:45:55', '2026-02-21 16:45:55'),
-(224, NULL, 'School1111', 'Upper Primary School', 'Other', 8, 10, 0, '45 Jefferson St.', 'Minnesota', 'US', '', 'Dr. Cole Amber', 'Teacher', '456-789-1234', 'newcontact@learnandhelp.com', 'Proposed', NULL, 'Test', '', NULL, 'Learn and Help', NULL, '2026-02-21 16:50:02', '2026-02-21 16:50:02'),
-(225, NULL, 'Testing school', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Test', NULL, '555-555-5555', NULL, 'Proposed', 'test', NULL, NULL, NULL, 'Learn and Help', NULL, '2026-02-26 02:36:49', '2026-02-26 02:36:49');
+(220, NULL, 'ZPHS (Rama Samudram)', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'Srinivas Sakhamuri', NULL, '+919441075753', NULL, 'Proposed', 'Zphs, rama samudram, tripurantakam mandal, A.P', NULL, NULL, NULL, 'Learn and Help', NULL, '2024-07-30 07:18:39', '2026-01-24 00:52:45');
 
 -- --------------------------------------------------------
 
@@ -4701,7 +4696,7 @@ ALTER TABLE `registrations`
 -- AUTO_INCREMENT for table `schools`
 --
 ALTER TABLE `schools`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'school id', AUTO_INCREMENT=226;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'school id', AUTO_INCREMENT=221;
 
 --
 -- AUTO_INCREMENT for table `users`
