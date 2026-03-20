@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Mar 06, 2026 at 01:07 AM
+-- Host: 127.0.0.1:3307
+-- Generation Time: Mar 20, 2026 at 02:27 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,99 @@ SET time_zone = "+00:00";
 --
 -- Database: `learnandhelp_db`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assets`
+--
+
+CREATE TABLE `assets` (
+  `id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `asset_type` enum('Physical','Digital') DEFAULT 'Physical',
+  `category` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `serial_number` varchar(100) DEFAULT NULL,
+  `purchase_date` date DEFAULT NULL,
+  `purchase_price` decimal(10,2) DEFAULT NULL,
+  `condition_status` enum('New','Good','Fair','Poor','Retired') DEFAULT 'Good',
+  `location` varchar(150) DEFAULT NULL,
+  `assigned_to` varchar(150) DEFAULT NULL,
+  `warranty_expiry` date DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `status` enum('Active','Inactive','Disposed') DEFAULT 'Active',
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  `photo_path` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `assets`
+--
+
+INSERT INTO `assets` (`id`, `name`, `asset_type`, `category`, `description`, `serial_number`, `purchase_date`, `purchase_price`, `condition_status`, `location`, `assigned_to`, `warranty_expiry`, `notes`, `status`, `date_created`, `photo_path`) VALUES
+(16, 'MacBook Pro 14\"', 'Physical', 'Computer', 'Apple MacBook Pro 14-inch M2, used for admin tasks.', 'SN-MBP-001', '2023-08-15', 1999.00, 'Good', 'Main Office', 'Nick Herberg', '2026-08-15', NULL, 'Active', '2026-03-18 22:22:16', 'uploads/assets/asset_16_1773922867.jpg'),
+(17, 'Dell Monitor 27\"', 'Physical', 'Monitor', 'Dell UltraSharp 27\" 4K monitor.', 'SN-DLM-002', '2023-08-15', 549.00, 'Good', 'Main Office', 'Nick Herberg', '2026-08-15', NULL, 'Active', '2026-03-18 22:22:16', 'uploads/assets/asset_17_1773922095.jpg'),
+(18, 'HP LaserJet Printer', 'Physical', 'Printer', 'HP LaserJet Pro MFP – print, scan, copy.', 'SN-HPL-003', '2022-03-10', 399.00, 'Fair', 'Main Office', 'Maria Santos', '2025-03-10', 'Needs toner soon', 'Active', '2026-03-18 22:22:16', 'uploads/assets/asset_18_1773922959.jpg'),
+(19, 'Projector – Epson EB-X', 'Physical', 'Projector', 'Epson classroom projector, used for events and classes', 'SN-EPS-004', '2021-06-01', 699.00, 'Fair', 'Storage Room', 'James Okonkwo', '2024-06-01', NULL, 'Active', '2026-03-18 22:22:16', NULL),
+(20, 'Folding Table (6ft)', 'Physical', 'Furniture', 'Plastic folding table used at community booths', NULL, '2020-01-20', 89.00, 'Good', 'Storage Room', 'Maria Santos', NULL, '4 units total', 'Active', '2026-03-18 22:22:16', NULL),
+(21, 'Folding Chairs (set of 10)', 'Physical', 'Furniture', 'Metal folding chairs for events', NULL, '2020-01-20', 120.00, 'Good', 'Storage Room', 'Maria Santos', NULL, NULL, 'Active', '2026-03-18 22:22:16', NULL),
+(22, 'Logitech Webcam C920', 'Physical', 'Camera', 'HD webcam used for virtual classes and meetings', 'SN-LOG-007', '2022-09-05', 79.00, 'Good', 'Main Office', 'Nick Herberg', '2025-09-05', NULL, 'Active', '2026-03-18 22:22:16', NULL),
+(23, 'Extension Cord (25ft)', 'Physical', 'Electrical', 'Heavy-duty extension cord for events', NULL, '2021-04-12', 35.00, 'Good', 'Storage Room', 'James Okonkwo', NULL, NULL, 'Active', '2026-03-18 22:22:16', NULL),
+(24, 'iPad (9th Gen)', 'Physical', 'Tablet', 'Apple iPad used for student check-in at events', 'SN-IPD-009', '2023-01-18', 329.00, 'Good', 'Main Office', 'Sofia Reyes', '2026-01-18', NULL, 'Active', '2026-03-18 22:22:16', NULL),
+(25, 'Old Dell Laptop', 'Physical', 'Computer', 'Dell Inspiron 15, retired – battery no longer holds charge', 'SN-DEL-010', '2018-05-30', 650.00, 'Retired', 'Storage Room', NULL, '2021-05-30', 'Kept for parts', 'Inactive', '2026-03-18 22:22:16', NULL),
+(26, 'Google Workspace (Annual)', 'Digital', 'Software License', 'Google Workspace Business Starter – annual subscription', 'LIC-GWS-011', '2024-01-01', 144.00, 'New', NULL, 'Nick Herberg', '2026-01-01', 'Renews Jan 2026', 'Active', '2026-03-18 22:22:16', NULL),
+(27, 'Zoom Pro License', 'Digital', 'Software License', 'Zoom Pro account for virtual classes and meetings', 'LIC-ZOM-012', '2024-03-01', 149.88, 'Good', NULL, 'Sofia Reyes', '2026-03-01', 'Annual plan', 'Active', '2026-03-18 22:22:16', NULL),
+(28, 'Canva Pro', 'Digital', 'Software License', 'Canva Pro for marketing and event materials', 'LIC-CNV-013', '2024-02-15', 54.99, 'Good', NULL, 'Sofia Reyes', '2025-02-15', NULL, 'Active', '2026-03-18 22:22:16', NULL),
+(29, 'Domain – learnandhelp.com', 'Digital', 'Domain / Hosting', 'Annual domain registration', NULL, '2024-06-01', 18.00, 'Good', NULL, 'Nick Herberg', '2025-06-01', 'Renews Jun 2025', 'Active', '2026-03-18 22:22:16', NULL),
+(30, 'Web Hosting (SiteGround)', 'Digital', 'Domain / Hosting', 'Shared hosting plan for the project website', 'LIC-SGH-015', '2024-06-01', 179.88, 'Good', NULL, 'Nick Herberg', '2025-06-01', 'Annual plan', 'Active', '2026-03-18 22:22:16', NULL),
+(31, 'Standing Desk', 'Physical', 'Furniture', 'Electric height-adjustable standing desk, 60x30\"', NULL, '2023-03-15', 549.00, 'New', 'Main Office', 'Nick Herberg', NULL, NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(32, 'Wireless Keyboard & Mouse', 'Physical', 'Computer', 'Logitech MK850 wireless combo set', 'SN-LGK-016', '2023-08-15', 79.99, 'Good', 'Main Office', 'Nick Herberg', '2026-08-15', NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(33, 'USB Hub (7-port)', 'Physical', 'Electrical', '7-port powered USB 3.0 hub for conference room', NULL, '2022-11-01', 39.99, 'Good', 'Conference Room', 'Sofia Reyes', NULL, NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(34, 'Conference Room TV 65\"', 'Physical', 'Monitor', 'Samsung 65\" 4K smart TV mounted in conference room', 'SN-SAM-018', '2022-06-10', 1299.00, 'Good', 'Conference Room', 'James Okonkwo', '2027-06-10', NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(35, 'Whiteboard (4x6)', 'Physical', 'Furniture', 'Magnetic dry-erase whiteboard, wall-mounted', NULL, '2021-09-01', 129.00, 'Good', 'Conference Room', NULL, NULL, NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(36, 'Label Maker', 'Physical', 'Office Equipment', 'Brother PT-D610BT label printer, Bluetooth-enabled', 'SN-BRT-020', '2023-05-20', 59.99, 'New', 'Main Office', 'Maria Santos', '2026-05-20', NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(37, 'Fire Tablet (10\")', 'Physical', 'Tablet', 'Amazon Fire HD 10 used as a digital sign at events', 'SN-AMZ-021', '2022-12-01', 149.99, 'Good', 'Storage Room', 'Sofia Reyes', '2025-12-01', NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(38, 'Surge Protector Strip', 'Physical', 'Electrical', '8-outlet surge protector for server/equipment area', NULL, '2021-07-15', 29.99, 'Good', 'Main Office', NULL, NULL, '2 units', 'Active', '2026-03-19 07:55:50', NULL),
+(39, 'Microsoft 365 (Annual)', 'Digital', 'Software License', 'Microsoft 365 Business Basic – 5 user licenses', 'LIC-M365-023', '2024-01-01', 300.00, 'New', NULL, 'Nick Herberg', '2026-01-01', 'Renews Jan 2026', 'Active', '2026-03-19 07:55:50', NULL),
+(40, 'Dropbox Business', 'Digital', 'Software License', 'Dropbox Business plan for file sharing and backup', 'LIC-DBX-024', '2024-04-01', 180.00, 'Good', NULL, 'Nick Herberg', '2026-04-01', 'Annual plan', 'Active', '2026-03-19 07:55:50', NULL),
+(41, 'Slack Pro', 'Digital', 'Software License', 'Slack Pro for team communication', 'LIC-SLK-025', '2024-02-01', 225.00, 'Good', NULL, 'Nick Herberg', '2026-02-01', 'Annual plan', 'Active', '2026-03-19 07:55:50', NULL),
+(42, 'SSL Certificate', 'Digital', 'Domain / Hosting', 'Annual SSL certificate for learnandhelp.com', NULL, '2024-06-01', 75.00, 'Good', NULL, 'Nick Herberg', '2025-06-01', NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(43, 'Broken HP Laptop', 'Physical', 'Computer', 'HP Pavilion 15 – cracked screen, non-functional', 'SN-HP2-027', '2019-08-10', 699.00, 'Poor', 'Storage Room', NULL, '2022-08-10', 'Sent to recycling Mar 2024', 'Disposed', '2026-03-19 07:55:50', NULL),
+(44, 'Portable Bluetooth Speaker', 'Physical', 'Audio Equipment', 'JBL Flip 6 portable speaker for outdoor events', 'SN-JBL-028', '2023-07-04', 129.99, 'Good', 'Storage Room', 'James Okonkwo', '2026-07-04', NULL, 'Active', '2026-03-19 07:55:50', NULL),
+(45, 'Ring Light Kit', 'Physical', 'Camera', '18\" LED ring light with tripod for video recordings', NULL, '2023-09-10', 65.99, 'New', 'Main Office', 'Sofia Reyes', NULL, NULL, 'Active', '2026-03-19 07:55:50', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `asset_logs`
+--
+
+CREATE TABLE `asset_logs` (
+  `id` int(11) NOT NULL,
+  `asset_id` int(11) DEFAULT NULL,
+  `asset_name` varchar(150) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `changed_by` varchar(150) DEFAULT NULL,
+  `details` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `asset_logs`
+--
+
+INSERT INTO `asset_logs` (`id`, `asset_id`, `asset_name`, `action`, `changed_by`, `details`, `created_at`) VALUES
+(1, 17, 'Dell Monitor 27\"', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:08:15'),
+(2, 16, 'MacBook Pro 14\"', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:21:07'),
+(3, 18, 'HP LaserJet Printer', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:22:39'),
+(4, 16, 'MacBook Pro 14\"', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:26:40'),
+(5, 17, 'Dell Monitor 27\"', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:29:15'),
+(6, 18, 'HP LaserJet Printer', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:29:36'),
+(7, 16, 'MacBook Pro 14\"', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:31:41'),
+(8, 16, 'MacBook Pro 14\"', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:34:52'),
+(9, 18, 'HP LaserJet Printer', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:38:16'),
+(10, 18, 'HP LaserJet Printer', 'Updated', 'Admin LearnandHelp2026', NULL, '2026-03-19 07:39:43');
 
 -- --------------------------------------------------------
 
@@ -3812,7 +3905,9 @@ CREATE TABLE `patrons` (
 --
 
 INSERT INTO `patrons` (`id`, `name`, `email`, `mobile`, `event_info`, `date_created`) VALUES
-(4, 'Jasthi Siva', 'JSiva@gmail.com', '000-000-0000', 'Metropolitan State University open house', '2026-03-05 00:00:00');
+(4, 'Jasthi Siva', 'JSiva@gmail.com', '000-000-0000', 'Metropolitan State University open house', '2026-03-05 00:00:00'),
+(5, 'Jane Smith', 'jane@example.com', '(555)000-000', 'Las Vegas Convention 2026- Booth 001', '2026-03-16 00:00:00'),
+(6, 'test', 'test@test.com', 'test', 'test', '2026-03-19 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -4407,6 +4502,18 @@ INSERT INTO `users` (`User_Id`, `First_Name`, `Last_Name`, `Email`, `Phone`, `Ad
 --
 
 --
+-- Indexes for table `assets`
+--
+ALTER TABLE `assets`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `asset_logs`
+--
+ALTER TABLE `asset_logs`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `blogs`
 --
 ALTER TABLE `blogs`
@@ -4507,6 +4614,18 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `assets`
+--
+ALTER TABLE `assets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+
+--
+-- AUTO_INCREMENT for table `asset_logs`
+--
+ALTER TABLE `asset_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `blogs`
 --
 ALTER TABLE `blogs`
@@ -4564,7 +4683,7 @@ ALTER TABLE `offerings`
 -- AUTO_INCREMENT for table `patrons`
 --
 ALTER TABLE `patrons`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `recommended_orgs`
