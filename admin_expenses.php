@@ -16,14 +16,24 @@ function handle_receipt_upload($file) {
     if ($file['error'] !== UPLOAD_ERR_OK) return '';
     $upload_dir = __DIR__ . '/images/receipts/';
     if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
-    $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $allowed = ['jpg','jpeg','png','gif','webp','pdf'];
-    if (!in_array($ext, $allowed)) return '';
+    $ext          = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowed_exts = ['jpg','jpeg','png','gif','webp','pdf'];
+    $allowed_mime = ['image/jpeg','image/png','image/gif','image/webp','application/pdf'];
+    if (!in_array($ext, $allowed_exts)) return '';
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    if (!in_array($mime, $allowed_mime)) return '';
     $filename = uniqid('receipt_', true) . '.' . $ext;
     if (move_uploaded_file($file['tmp_name'], $upload_dir . $filename)) {
         return 'images/receipts/' . $filename;
     }
     return '';
+}
+
+// ── Receipt file cleanup helper ───────────────────────────────────
+function delete_receipt_file($path) {
+    if (!empty($path) && file_exists(__DIR__ . '/' . $path)) {
+        unlink(__DIR__ . '/' . $path);
+    }
 }
 
 // ── Handle POST actions ──────────────────────────────────────────
@@ -44,6 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $uploaded = handle_receipt_upload($_FILES['receipt_image']);
             if ($uploaded) $receipt_image = $uploaded;
         }
+        // Handle remove receipt checkbox
+        if (!empty($_POST['remove_receipt']) && empty($_FILES['receipt_image']['name'])) {
+            delete_receipt_file($_POST['existing_image'] ?? '');
+            $receipt_image = '';
+        }
 
         if (empty($date) || $amount <= 0) {
             $error = 'Date and a valid amount are required.';
@@ -54,6 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($stmt->execute()) $message = 'Expense added successfully!';
                 else $error = 'Error adding expense: ' . $db->error;
             } else {
+                // Delete old receipt file if a new one was uploaded
+                $old_receipt = $_POST['existing_image'] ?? '';
+                if (!empty($_FILES['receipt_image']['name']) && $receipt_image !== $old_receipt) {
+                    delete_receipt_file($old_receipt);
+                }
                 $stmt = $db->prepare("UPDATE expenses SET date=?, amount=?, category=?, description=?, paid_by=?, receipt_image=? WHERE id=?");
                 $stmt->bind_param('sdssssi', $date, $amount, $category, $description, $paid_by, $receipt_image, $id);
                 if ($stmt->execute()) $message = 'Expense updated successfully!';
@@ -63,21 +83,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'delete') {
+        // Fetch receipt path before deleting so we can clean up the file
+        $stmt = $db->prepare("SELECT receipt_image FROM expenses WHERE id=?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $del_row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
         $stmt = $db->prepare("DELETE FROM expenses WHERE id=?");
         $stmt->bind_param('i', $id);
-        if ($stmt->execute()) $message = 'Expense deleted.';
-        else $error = 'Error deleting expense.';
+        if ($stmt->execute()) {
+            delete_receipt_file($del_row['receipt_image'] ?? '');
+            $message = 'Expense deleted.';
+        } else {
+            $error = 'Error deleting expense.';
+        }
     }
 }
 
 // ── Date range filter ────────────────────────────────────────────
 $date_from = $_GET['date_from'] ?? date('Y-m-01'); // first of current month
 $date_to   = $_GET['date_to']   ?? date('Y-m-d');  // today
+$filter_cat = isset($_GET['filter_cat']) ? trim($_GET['filter_cat']) : '';
+$sort         = $_GET['sort'] ?? 'date';
+$dir          = strtoupper($_GET['dir']  ?? 'DESC');
+$allowed_sort = ['date','amount','category','paid_by','description'];
+$allowed_dir  = ['ASC','DESC'];
+if (!in_array($sort, $allowed_sort)) $sort = 'date';
+if (!in_array($dir,  $allowed_dir))  $dir  = 'DESC';
 
 // ── Fetch expenses for table ─────────────────────────────────────
 $expenses = [];
-$stmt = $db->prepare("SELECT * FROM expenses WHERE date BETWEEN ? AND ? ORDER BY date DESC");
-$stmt->bind_param('ss', $date_from, $date_to);
+$where  = "date BETWEEN ? AND ?";
+$params = [$date_from, $date_to];
+$types  = 'ss';
+if ($filter_cat !== '') {
+    $where  .= " AND category = ?";
+    $params[] = $filter_cat;
+    $types  .= 's';
+}
+$stmt = $db->prepare("SELECT * FROM expenses WHERE $where ORDER BY $sort $dir");
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
 $res = $stmt->get_result();
 while ($row = $res->fetch_assoc()) $expenses[] = $row;
@@ -92,6 +137,13 @@ foreach ($expenses as $e) {
 }
 arsort($category_totals);
 
+$paidby_totals = [];
+foreach ($expenses as $e) {
+    $person = trim($e['paid_by']) ?: 'Unspecified';
+    $paidby_totals[$person] = ($paidby_totals[$person] ?? 0) + $e['amount'];
+}
+arsort($paidby_totals);
+
 // ── Fetch for edit ───────────────────────────────────────────────
 $edit_expense = null;
 if ($action === 'edit' && $id && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -101,8 +153,32 @@ if ($action === 'edit' && $id && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $edit_expense = $stmt->get_result()->fetch_assoc();
 }
 
+// ── CSV export ───────────────────────────────────────────────────
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    $res = $db->query("SELECT date, amount, category, description, paid_by, receipt_image FROM expenses ORDER BY date DESC");
+    $db->close();
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="expenses_' . date('Y-m-d') . '.csv"');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['Date', 'Amount', 'Category', 'Description', 'Paid By', 'Receipt']);
+    while ($row = $res->fetch_assoc()) {
+        fputcsv($out, [$row['date'], number_format($row['amount'], 2), $row['category'], $row['description'], $row['paid_by'], $row['receipt_image']]);
+    }
+    fclose($out);
+    exit;
+}
+
 // Common categories
 $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Other'];
+
+function expense_sort_link($col, $label, $sort, $dir, $date_from, $date_to, $filter_cat) {
+    $new_dir = ($sort === $col && $dir === 'ASC') ? 'DESC' : 'ASC';
+    $arrow   = ($sort === $col) ? ($dir === 'ASC' ? ' ▲' : ' ▼') : ' ↕';
+    $url = 'admin_expenses.php?sort=' . $col . '&dir=' . $new_dir
+         . '&date_from=' . urlencode($date_from) . '&date_to=' . urlencode($date_to)
+         . ($filter_cat ? '&filter_cat=' . urlencode($filter_cat) : '');
+    return '<a href="' . $url . '" style="color:inherit;text-decoration:none;white-space:nowrap;">' . htmlspecialchars($label) . $arrow . '</a>';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -112,6 +188,7 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
   <link rel="icon" href="images/icon_logo.png" type="image/icon type">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;700;900&display=swap" rel="stylesheet">
   <link href="css/main.css?v=2025-08-22a" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root { --accent:#99D930; }
     body { font-family:'Montserrat',sans-serif; background:#f8f8f8; margin:0; color:#252525; }
@@ -141,8 +218,14 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
     .tile-count { font-size:.8rem; color:#aaa; margin-top:4px; }
 
     /* ── Form ── */
-    .form-card { background:#fff; border-radius:14px; box-shadow:0 4px 20px rgba(0,0,0,.08); padding:30px; margin-bottom:30px; }
-    .form-card h2 { margin:0 0 24px; font-size:1.4rem; font-weight:900; }
+    .form-card { background:#fff; border-radius:14px; box-shadow:0 4px 20px rgba(0,0,0,.08); padding:0; margin-bottom:30px; overflow:hidden; }
+    .form-card-header { display:flex; align-items:center; justify-content:space-between; padding:20px 30px; cursor:pointer; user-select:none; }
+    .form-card-header h2 { margin:0; font-size:1.4rem; font-weight:900; }
+    .form-card-header:hover { background:#fafff0; }
+    .form-chevron { font-size:1.1rem; transition:transform .25s; color:#888; }
+    .form-chevron.open { transform:rotate(180deg); }
+    .form-body { max-height:0; overflow:hidden; transition:max-height .35s ease; padding:0 30px; }
+    .form-body.open { max-height:1200px; padding:0 30px 30px; }
     .form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
     .form-group { display:flex; flex-direction:column; gap:6px; }
     .form-group.full { grid-column:1/-1; }
@@ -177,6 +260,11 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
     .delete-link:hover { text-decoration:underline; }
     .total-row td { background:#f8fbe9; font-weight:900; border-top:2px solid var(--accent); }
     @media(max-width:700px){ .form-grid{grid-template-columns:1fr;} .tiles{grid-template-columns:1fr 1fr;} }
+    .shortcut-btns { display:flex; gap:8px; flex-wrap:wrap; align-self:flex-end; }
+    .shortcut-btn { background:#f0f0f0; color:#444; border:1.5px solid #ddd; padding:8px 14px; border-radius:8px; font-weight:700; font-size:.82rem; cursor:pointer; font-family:'Montserrat',sans-serif; transition:background .15s,border-color .15s; }
+    .shortcut-btn:hover { background:#e8f5d0; border-color:var(--accent); color:#274606; }
+    .chart-card { background:#fff; border-radius:14px; box-shadow:0 4px 20px rgba(0,0,0,.08); padding:28px 30px; margin-bottom:30px; }
+    .chart-card h3 { margin:0 0 20px; font-size:1.1rem; font-weight:900; color:#252525; }
   </style>
 </head>
 <body>
@@ -202,6 +290,21 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
     <div>
       <label>To</label><br>
       <input type="date" name="date_to" value="<?= htmlspecialchars($date_to) ?>">
+    </div>
+    <div class="shortcut-btns">
+      <button type="button" class="shortcut-btn" onclick="setDateRange('this_month')">This Month</button>
+      <button type="button" class="shortcut-btn" onclick="setDateRange('last_month')">Last Month</button>
+      <button type="button" class="shortcut-btn" onclick="setDateRange('this_year')">This Year</button>
+      <button type="button" class="shortcut-btn" onclick="setDateRange('all_time')">All Time</button>
+    </div>
+    <div>
+      <label>Category</label><br>
+      <select name="filter_cat" style="border:1px solid #ddd;border-radius:8px;padding:8px 14px;font-family:'Montserrat',sans-serif;font-size:.95rem;">
+        <option value="">All Categories</option>
+        <?php foreach ($categories as $cat): ?>
+        <option value="<?= htmlspecialchars($cat) ?>" <?= $filter_cat === $cat ? 'selected' : '' ?>><?= htmlspecialchars($cat) ?></option>
+        <?php endforeach; ?>
+      </select>
     </div>
     <div style="align-self:flex-end;">
       <button type="submit" class="filter-btn">Filter</button>
@@ -234,9 +337,49 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
     <?php endif; ?>
   </div>
 
+  <?php if (!empty($paidby_totals) && count($paidby_totals) > 1): ?>
+  <div style="margin-bottom:6px;font-weight:700;font-size:.85rem;color:#888;text-transform:uppercase;letter-spacing:.5px;">By Person</div>
+  <div class="tiles" style="margin-bottom:30px;">
+    <?php foreach ($paidby_totals as $person => $total): ?>
+    <div class="tile">
+      <div class="tile-label"><?= htmlspecialchars($person) ?></div>
+      <div class="tile-amount">$<?= number_format($total, 2) ?></div>
+      <div class="tile-count"><?= $grand_total > 0 ? number_format(($total / $grand_total) * 100, 1) . '% of total' : '' ?></div>
+    </div>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
+
+  <?php if (!empty($category_totals)): ?>
+  <div class="chart-card">
+    <h3>Spending by Category</h3>
+    <canvas id="categoryChart" style="max-height:260px;"></canvas>
+  </div>
+  <script>
+  (function() {
+    const labels = <?= json_encode(array_keys($category_totals)) ?>;
+    const data   = <?= json_encode(array_values($category_totals)) ?>;
+    const colors = ['#99D930','#4a9e0f','#b8e95a','#2d6e00','#d4f094','#7bc423','#3a8000','#c6f040'];
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'Amount ($)', data, backgroundColor: colors.slice(0, data.length), borderRadius: 7, borderSkipped: false }] },
+      options: {
+        indexAxis: 'y', responsive: true,
+        plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: c => ' $'+c.parsed.x.toLocaleString('en-US',{minimumFractionDigits:2}) } } },
+        scales: { x:{ ticks:{callback: v=>'$'+v.toLocaleString()}, grid:{color:'#f0f0f0'} }, y:{grid:{display:false}} }
+      }
+    });
+  })();
+  </script>
+  <?php endif; ?>
+
   <!-- ── Add / Edit Form ── -->
   <div class="form-card">
-    <h2><?= $edit_expense ? 'Edit Expense' : 'Add New Expense' ?></h2>
+    <div class="form-card-header" onclick="toggleExpenseForm()">
+      <h2><?= $edit_expense ? '✏️ Edit Expense' : '➕ Add New Expense' ?></h2>
+      <span class="form-chevron<?= $edit_expense ? ' open' : '' ?>" id="expense-chevron">▼</span>
+    </div>
+    <div class="form-body<?= $edit_expense ? ' open' : '' ?>" id="expense-form-body">
     <form method="POST" enctype="multipart/form-data">
       <input type="hidden" name="action" value="<?= $edit_expense ? 'edit' : 'add' ?>">
       <?php if ($edit_expense): ?>
@@ -273,13 +416,17 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
         <div class="form-group full">
           <label>Receipt (JPG, PNG, PDF)</label>
           <?php if (!empty($edit_expense['receipt_image'])): ?>
-            <div style="margin-bottom:8px;">
-              <p style="margin:0 0 4px;font-size:.85rem;color:#888;">Current receipt:</p>
+            <div style="margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
               <?php if (str_ends_with(strtolower($edit_expense['receipt_image']), '.pdf')): ?>
-                <a href="<?= htmlspecialchars($edit_expense['receipt_image']) ?>" target="_blank" style="color:#007bff;font-size:.9rem;">View PDF Receipt</a>
+                <a href="<?= htmlspecialchars($edit_expense['receipt_image']) ?>" target="_blank" style="color:#007bff;font-size:.9rem;">📄 View PDF Receipt</a>
               <?php else: ?>
-                <img src="<?= htmlspecialchars($edit_expense['receipt_image']) ?>" class="receipt-thumb" style="width:80px;height:80px;" alt="Receipt">
+                <a href="<?= htmlspecialchars($edit_expense['receipt_image']) ?>" target="_blank">
+                  <img src="<?= htmlspecialchars($edit_expense['receipt_image']) ?>" class="receipt-thumb" style="width:80px;height:80px;" alt="Receipt">
+                </a>
               <?php endif; ?>
+              <label style="display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:#dc3545;cursor:pointer;font-weight:700;">
+                <input type="checkbox" name="remove_receipt" value="1"> Remove current receipt
+              </label>
             </div>
           <?php endif; ?>
           <input type="file" name="receipt_image" accept="image/*,.pdf">
@@ -294,22 +441,27 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
         <?php endif; ?>
       </div>
     </form>
+    </div><!-- /form-body -->
   </div>
 
   <!-- ── Expenses Table ── -->
   <div class="table-card">
     <h2>
       Expense Records
-      <span style="font-size:.9rem;font-weight:400;color:#888;"><?= date('M d, Y', strtotime($date_from)) ?> – <?= date('M d, Y', strtotime($date_to)) ?></span>
+      <span style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <span style="font-size:.9rem;font-weight:400;color:#888;"><?= date('M d, Y', strtotime($date_from)) ?> – <?= date('M d, Y', strtotime($date_to)) ?></span>
+        <a href="admin_expenses.php?export=csv" class="filter-btn" style="font-size:.82rem;padding:7px 16px;text-decoration:none;">⬇ Export CSV</a>
+        <a href="admin_expenses_report.php" style="background:#fff;color:#1a1a1a;padding:7px 16px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.82rem;border:2px solid var(--accent);">📊 View Report</a>
+      </span>
     </h2>
     <table>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Description</th>
-          <th>Category</th>
-          <th>Paid By</th>
-          <th>Amount</th>
+          <th><?= expense_sort_link('date','Date',$sort,$dir,$date_from,$date_to,$filter_cat) ?></th>
+          <th><?= expense_sort_link('description','Description',$sort,$dir,$date_from,$date_to,$filter_cat) ?></th>
+          <th><?= expense_sort_link('category','Category',$sort,$dir,$date_from,$date_to,$filter_cat) ?></th>
+          <th><?= expense_sort_link('paid_by','Paid By',$sort,$dir,$date_from,$date_to,$filter_cat) ?></th>
+          <th><?= expense_sort_link('amount','Amount',$sort,$dir,$date_from,$date_to,$filter_cat) ?></th>
           <th>Receipt</th>
           <th>Actions</th>
         </tr>
@@ -343,8 +495,9 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
             <a href="#" class="delete-link"
                onclick="if(confirm('Delete this expense? This cannot be undone.')) {
                  var f=document.createElement('form'); f.method='POST'; f.action='admin_expenses.php';
-                 f.innerHTML='<input name=action value=delete><input name=id value=<?= $e['id'] ?>>';
-                 document.body.appendChild(f); f.submit();
+                 var a=document.createElement('input'); a.name='action'; a.value='delete';
+                 var i=document.createElement('input'); i.name='id'; i.value='<?= intval($e['id']) ?>';
+                 f.appendChild(a); f.appendChild(i); document.body.appendChild(f); f.submit();
                } return false;">Delete</a>
           </td>
         </tr>
@@ -361,6 +514,43 @@ $categories = ['Supplies', 'Technology', 'Education', 'Charity', 'Projects', 'Ot
 
 </div>
 
-<?php $db->close(); include 'footer.php'; ?>
+<?php $db->close(); ?>
+<?php include 'footer.php'; ?>
+
+<script>
+function toggleExpenseForm() {
+    const body    = document.getElementById('expense-form-body');
+    const chevron = document.getElementById('expense-chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+}
+function setDateRange(range) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+    let from, to;
+    if (range === 'this_month') {
+        from = y + '-' + m + '-01';
+        to   = y + '-' + m + '-' + String(lastDay).padStart(2, '0');
+    } else if (range === 'last_month') {
+        const d = new Date(y, now.getMonth() - 1, 1);
+        const lm = String(d.getMonth() + 1).padStart(2, '0');
+        const ly = d.getFullYear();
+        const ld = new Date(ly, d.getMonth() + 1, 0).getDate();
+        from = ly + '-' + lm + '-01';
+        to   = ly + '-' + lm + '-' + String(ld).padStart(2, '0');
+    } else if (range === 'this_year') {
+        from = y + '-01-01';
+        to   = y + '-12-31';
+    } else {
+        from = '2000-01-01';
+        to   = y + '-12-31';
+    }
+    document.querySelector('[name=date_from]').value = from;
+    document.querySelector('[name=date_to]').value   = to;
+    document.querySelector('[name=date_from]').closest('form').submit();
+}
+</script>
 </body>
 </html>
