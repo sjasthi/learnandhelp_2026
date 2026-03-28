@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l \"c:/xampp/htdocs/learnandhelp_2026/chat_api.php\")",
+      "Bash(php -l \"c:/xampp/htdocs/learnandhelp_2026/chat.php\")",
+      "Bash(php -l \"c:/xampp/htdocs/learnandhelp_2026/chatbot.php\")",
+      "Bash(php -l \"c:/xampp/htdocs/learnandhelp_2026/admin_chat_log.php\")",
+      "Bash(php -l \"c:/xampp/htdocs/learnandhelp_2026/chat_rate.php\")"
+    ]
+  }
+}

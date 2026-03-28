@@ -154,6 +154,8 @@ show_navbar();
         <a class="admin_icon" href="admin_assets.php"><img src="images/admin_icons/assign.png" alt="Assets"><label>Assets</label></a>
         <a class="admin_icon" href="admin_assets_report.php"><img src="images/admin_icons/reports_icon.png" alt="Assets Report"><label>Assets Report</label></a>
 		<a class="admin_icon" href="admin_expenses.php"><img src="images/admin_icons/reports_icon.png" alt="Expenses"><label>Expenses</label></a>
+        <a class="admin_icon" href="admin_chatbot_evaluation.php"><img src="images/admin_icons/api.png" alt="Chatbot Eval"><label>Chatbot Eval</label></a>
+        <a class="admin_icon" href="admin_chat_log.php"><img src="images/admin_icons/api.png" alt="Chat Log"><label>Chat Log</label></a>
 </div>
 
 <div class="icon-attribution">
