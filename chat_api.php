@@ -203,7 +203,7 @@ function processQuestion($conn, $msg, $original, &$handler = null) {
     }
 
     // ── Help / what can you do ────────────────────────────────────────────────
-    if (preg_match('/(what can you|help|what do you|how do i|what questions)/', $msg)) {
+    if (preg_match('/(what can you|what do you|how do i|what questions|\bhelp\b)/', $msg) && !preg_match('/how many/', $msg)) {
         $handler = 'Help';
         return "I can answer questions about Learn and Help schools! Try:\n\n"
              . "• How many schools are supported?\n"
