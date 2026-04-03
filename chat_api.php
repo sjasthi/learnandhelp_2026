@@ -70,8 +70,254 @@ if (!defined('CHAT_API_INCLUDED')) {
 
     if ($use_llm) {
         // LLM mode: proxy to Anthropic Claude via cURL so the API key never touches the browser
-        $system_prompt = 'You are a helpful assistant for the Learn and Help school support program. Only answer questions related to the program and its supported schools.'
-            . ($llm_keywords !== '' ? ' Context: ' . $llm_keywords : '');
+        // ── Step 1: Always-inject DB summary ─────────────────────────────────
+        $db_context = '';
+
+        // 1a. Org identity (hardcoded — no query needed)
+        $db_context .= "\n\nORG: Learn and Help"
+            . " | Tagline: Empowering Minds, Inspiring Generosity"
+            . " | Mission: Teach CS/Python to students; 100% of proceeds fund schools/libraries in India"
+            . " | Founder: Siva Jasthi Ph.D."
+            . " | Contact: 651-276-4671 / Siva.Jasthi@gmail.com"
+            . " | Address: 5736 Pond Ct, Shoreview MN 55126"
+            . " | Teaching: via Zoom | Target: middle & high school students"
+            . " | Beneficiaries: NRIVA Pustaka Mitra (50%), ALAMBAMANA Foundation (50%)";
+
+        // 1b. Board members (name:role, active only)
+        $board_lines = [];
+        $r_board = $conn->query("SELECT name, role FROM board_members WHERE status='active' ORDER BY sort_order ASC, id ASC");
+        if ($r_board) { while ($row = $r_board->fetch_assoc()) $board_lines[] = $row['name'] . ':' . $row['role']; }
+        if (!empty($board_lines)) $db_context .= "\n\nBoardMembers(active)=[" . implode(', ', $board_lines) . "]";
+
+        // 1c. Approved classes
+        $class_lines = [];
+        $r_cls = $conn->query("SELECT Class_Name FROM classes WHERE Status='Approved' ORDER BY Class_Id");
+        if ($r_cls) { while ($row = $r_cls->fetch_assoc()) $class_lines[] = $row['Class_Name']; }
+        if (!empty($class_lines)) $db_context .= "\n\nClasses(approved)=[" . implode(', ', $class_lines) . "]";
+
+        // 1d. Instructors (names only)
+        $instr_lines = [];
+        $r_instr = $conn->query("SELECT First_name, Last_name FROM instructor ORDER BY instructor_ID");
+        if ($r_instr) { while ($row = $r_instr->fetch_assoc()) $instr_lines[] = $row['First_name'] . ' ' . $row['Last_name']; }
+        if (!empty($instr_lines)) $db_context .= "\n\nInstructors=[" . implode(', ', $instr_lines) . "]";
+
+        // 1e. Completed vs Proposed counts
+        $cnt_completed = 0; $cnt_proposed = 0;
+        $r1 = $conn->query("SELECT status, COUNT(*) AS cnt FROM schools WHERE status IN ('Completed','Proposed') GROUP BY status");
+        if ($r1) { while ($row = $r1->fetch_assoc()) { if ($row['status'] === 'Completed') $cnt_completed = (int)$row['cnt']; else $cnt_proposed = (int)$row['cnt']; } }
+
+        // 1b. Total students served
+        $total_students = 0;
+        $r2 = $conn->query("SELECT SUM(current_enrollment) AS total FROM schools WHERE status='Completed' AND current_enrollment>0");
+        if ($r2) { $row = $r2->fetch_assoc(); $total_students = (int)($row['total'] ?? 0); }
+
+        // 1c. Schools per state
+        $state_lines = [];
+        $r3 = $conn->query("SELECT state_name, COUNT(*) AS cnt FROM schools WHERE status='Completed' AND state_name IS NOT NULL GROUP BY state_name ORDER BY cnt DESC");
+        if ($r3) { while ($row = $r3->fetch_assoc()) $state_lines[] = ($row['state_name'] ?? '?') . ':' . $row['cnt']; }
+
+        // 1d. Schools per sponsor
+        $sponsor_lines = [];
+        $r4 = $conn->query("SELECT supported_by, COUNT(*) AS cnt FROM schools WHERE status='Completed' AND supported_by IS NOT NULL AND supported_by!='' GROUP BY supported_by ORDER BY cnt DESC");
+        if ($r4) { while ($row = $r4->fetch_assoc()) $sponsor_lines[] = ($row['supported_by'] ?? '?') . ':' . $row['cnt']; }
+
+        // 1e. School type breakdown
+        $type_lines = [];
+        $r5 = $conn->query("SELECT type, COUNT(*) AS cnt FROM schools WHERE status='Completed' AND type IS NOT NULL GROUP BY type ORDER BY cnt DESC");
+        if ($r5) { while ($row = $r5->fetch_assoc()) $type_lines[] = ($row['type'] ?? '?') . ':' . $row['cnt']; }
+
+        $db_context  = "\n\nDB_SUMMARY: ProgramTotal=" . $cnt_completed . "(completed active schools), Proposed=" . $cnt_proposed . ";";
+        $db_context .= " TotalStudents=" . number_format($total_students) . ";";
+        $db_context .= " ByState=[" . implode(', ', $state_lines) . "];";
+        $db_context .= " BySponsor(subset sponsors, not total)=[" . implode(', ', $sponsor_lines) . "];";
+        $db_context .= " ByType=[" . implode(', ', $type_lines) . "]";
+
+        // ── Step 2: Conditional injection based on user message ───────────────
+        $msg_lower = strtolower($userMessage);
+        $conditional_context = '';
+
+        // 2a. State detection (direct match, then fuzzy)
+        $known_states_llm = [
+            'andhra pradesh', 'telangana', 'tamil nadu', 'karnataka', 'maharashtra',
+            'kerala', 'odisha', 'gujarat', 'rajasthan', 'west bengal', 'uttar pradesh',
+            'bihar', 'punjab', 'haryana', 'madhya pradesh', 'chhattisgarh', 'jharkhand', 'assam',
+        ];
+        $detected_state = null;
+        foreach ($known_states_llm as $st) {
+            if (strpos($msg_lower, $st) !== false) { $detected_state = $st; break; }
+        }
+        if ($detected_state === null) {
+            $words_llm = preg_split('/\s+/', $msg_lower);
+            foreach ($known_states_llm as $st) {
+                if (strpos($st, ' ') === false) {
+                    foreach ($words_llm as $w) {
+                        if (strlen($w) >= 5) { similar_text($w, $st, $pct); if ($pct >= 80) { $detected_state = $st; break 2; } }
+                    }
+                } else {
+                    for ($i = 0; $i < count($words_llm) - 1; $i++) {
+                        similar_text($words_llm[$i] . ' ' . $words_llm[$i+1], $st, $pct);
+                        if ($pct >= 82) { $detected_state = $st; break 2; }
+                    }
+                }
+            }
+        }
+        if ($detected_state !== null) {
+            $search_st = '%' . $detected_state . '%';
+            // Get total count first
+            $stmt_st_cnt = $conn->prepare("SELECT COUNT(*) AS cnt FROM schools WHERE LOWER(state_name) LIKE ? AND status='Completed'");
+            $stmt_st_cnt->bind_param("s", $search_st);
+            $stmt_st_cnt->execute();
+            $st_total = (int)$stmt_st_cnt->get_result()->fetch_assoc()['cnt'];
+            $stmt_st_cnt->close();
+
+            $stmt_st = $conn->prepare("SELECT name, type, current_enrollment FROM schools WHERE LOWER(state_name) LIKE ? AND status='Completed' ORDER BY name LIMIT 15");
+            $stmt_st->bind_param("s", $search_st);
+            $stmt_st->execute();
+            $r_st = $stmt_st->get_result();
+            $st_list = [];
+            while ($row = $r_st->fetch_assoc()) {
+                $enroll = $row['current_enrollment'] > 0 ? '/' . $row['current_enrollment'] . 'students' : '';
+                $st_list[] = $row['name'] . '(' . ($row['type'] ?? '?') . $enroll . ')';
+            }
+            $stmt_st->close();
+            if (!empty($st_list)) {
+                $st_more = $st_total > 15 ? ', TotalInState=' . $st_total . '(showing first 15)' : '';
+                $conditional_context .= "\nStateSchools[" . ucwords($detected_state) . $st_more . "]:" . implode('; ', $st_list);
+            }
+        }
+
+        // 2b. Sponsor detection
+        $sponsor_map_llm = ['pgnf' => 'PGNF', 'nriva' => 'NRIVA', 'learn and help' => 'Learn and Help'];
+        $detected_sponsor = null;
+        foreach ($sponsor_map_llm as $kw => $canonical) {
+            if (strpos($msg_lower, $kw) !== false) { $detected_sponsor = $canonical; break; }
+        }
+        if ($detected_sponsor !== null) {
+            $stmt_sp = $conn->prepare("SELECT name, state_name FROM schools WHERE supported_by=? AND status='Completed' ORDER BY name LIMIT 15");
+            $stmt_sp->bind_param("s", $detected_sponsor);
+            $stmt_sp->execute();
+            $r_sp = $stmt_sp->get_result();
+            $sp_list = [];
+            while ($row = $r_sp->fetch_assoc()) $sp_list[] = $row['name'] . '(' . ($row['state_name'] ?? '?') . ')';
+            $stmt_sp->close();
+            if (!empty($sp_list)) $conditional_context .= "\nSponsorSchools[" . $detected_sponsor . "]:" . implode('; ', $sp_list);
+        }
+
+        // 2c. Board members detail
+        if (preg_match('/\b(board|member|leadership|govern|director|who runs|who leads)\b/', $msg_lower)) {
+            $r_bdet = $conn->query("SELECT name, role, bio, location FROM board_members WHERE status='active' ORDER BY sort_order ASC, id ASC");
+            if ($r_bdet) {
+                $bdet_list = [];
+                while ($row = $r_bdet->fetch_assoc()) {
+                    $bio_short = $row['bio'] ? substr(strip_tags($row['bio']), 0, 120) : '';
+                    $bdet_list[] = $row['name'] . '(' . $row['role'] . ($row['location'] ? ', ' . $row['location'] : '') . ($bio_short ? ': ' . $bio_short : '') . ')';
+                }
+                if (!empty($bdet_list)) $conditional_context .= "\nBoardDetail:" . implode('; ', $bdet_list);
+            }
+        }
+
+        // 2d. Classes + offerings detail
+        if (preg_match('/\b(class|course|python|learn|enroll|register|offering|schedule|curriculum|java|snap)\b/', $msg_lower)) {
+            $r_cdet = $conn->query("SELECT Class_Name, Description FROM classes WHERE Status='Approved' ORDER BY Class_Id");
+            if ($r_cdet) {
+                $cdet_list = [];
+                while ($row = $r_cdet->fetch_assoc()) {
+                    $desc_short = $row['Description'] ? substr(strip_tags($row['Description']), 0, 100) : '';
+                    $cdet_list[] = $row['Class_Name'] . ($desc_short ? ': ' . $desc_short : '');
+                }
+                if (!empty($cdet_list)) $conditional_context .= "\nClassDetail:" . implode('; ', $cdet_list);
+            }
+            $r_off = $conn->query("SELECT o.Batch_Name, o.day_of_week, o.start_time, o.end_time, c.Class_Name FROM offerings o JOIN classes c ON o.Class_Id=c.Class_Id WHERE c.Status='Approved' ORDER BY o.offering_id DESC LIMIT 5");
+            if ($r_off) {
+                $off_list = [];
+                while ($row = $r_off->fetch_assoc()) $off_list[] = $row['Class_Name'] . '/' . $row['Batch_Name'] . '(' . $row['day_of_week'] . ' ' . $row['start_time'] . ')';
+                if (!empty($off_list)) $conditional_context .= "\nOfferings:" . implode('; ', $off_list);
+            }
+        }
+
+        // 2e. Instructor detail
+        if (preg_match('/\b(instructor|teacher|who teaches|staff|faculty|teaching)\b/', $msg_lower)) {
+            $r_idet = $conn->query("SELECT First_name, Last_name, Bio_data FROM instructor ORDER BY instructor_ID");
+            if ($r_idet) {
+                $idet_list = [];
+                while ($row = $r_idet->fetch_assoc()) {
+                    $bio_short = $row['Bio_data'] ? substr(strip_tags($row['Bio_data']), 0, 120) : '';
+                    $idet_list[] = $row['First_name'] . ' ' . $row['Last_name'] . ($bio_short ? ': ' . $bio_short : '');
+                }
+                if (!empty($idet_list)) $conditional_context .= "\nInstructorDetail:" . implode('; ', $idet_list);
+            }
+        }
+
+        // 2f. Upcoming events
+        if (preg_match('/\b(event|webinar|workshop|upcoming|seminar)\b/', $msg_lower)) {
+            $r_ev = $conn->query("SELECT title, date, start_time, presenter FROM events WHERE status='scheduled' ORDER BY date ASC, start_time ASC LIMIT 5");
+            if ($r_ev) {
+                $ev_list = [];
+                while ($row = $r_ev->fetch_assoc()) $ev_list[] = $row['title'] . '(' . $row['date'] . ($row['presenter'] ? ', ' . $row['presenter'] : '') . ')';
+                if (!empty($ev_list)) $conditional_context .= "\nUpcomingEvents:" . implode('; ', $ev_list);
+                else $conditional_context .= "\nUpcomingEvents:none scheduled";
+            }
+        }
+
+        // 2g. Books / library
+        if (preg_match('/\b(book|library|catalog|read|reading)\b/', $msg_lower)) {
+            $r_bk_cnt = $conn->query("SELECT grade_level, COUNT(*) AS cnt FROM books GROUP BY grade_level ORDER BY cnt DESC");
+            $bk_grade = [];
+            if ($r_bk_cnt) { while ($row = $r_bk_cnt->fetch_assoc()) $bk_grade[] = ($row['grade_level'] ?? 'Unknown') . ':' . $row['cnt']; }
+            $r_bk_tot = $conn->query("SELECT COUNT(*) AS cnt FROM books");
+            $bk_total = $r_bk_tot ? (int)$r_bk_tot->fetch_assoc()['cnt'] : 0;
+            $r_bk_samp = $conn->query("SELECT title, author FROM books ORDER BY id LIMIT 5");
+            $bk_samp = [];
+            if ($r_bk_samp) { while ($row = $r_bk_samp->fetch_assoc()) $bk_samp[] = '"' . $row['title'] . '" by ' . $row['author']; }
+            $conditional_context .= "\nBooks: Total=" . $bk_total . "; ByGrade=[" . implode(', ', $bk_grade) . "]; Samples=[" . implode('; ', $bk_samp) . "]";
+        }
+
+        // 2h. Community partners
+        if (preg_match('/\b(partner|collaborat|community org)\b/', $msg_lower)) {
+            $r_part = $conn->query("SELECT partner_name, partner_type FROM community_partners WHERE status='active' ORDER BY partner_id");
+            if ($r_part) {
+                $part_list = [];
+                while ($row = $r_part->fetch_assoc()) $part_list[] = $row['partner_name'] . '(' . ($row['partner_type'] ?? '?') . ')';
+                if (!empty($part_list)) $conditional_context .= "\nCommunityPartners:" . implode('; ', $part_list);
+            }
+        }
+
+        // 2j. School name search (only when no state or sponsor fired)
+        if ($detected_state === null && $detected_sponsor === null) {
+            $clean = preg_replace('/\b(is|does|do|are|has|have|was|were|the|a|an|this|that|school|supported|support|in|by|learn\s*and\s*help|program|status|of|about|tell|me|info|information|on|find|search|look|up|for|what|please|can|you|check)\b/i', ' ', $userMessage);
+            $clean = trim(preg_replace('/\s+/', ' ', $clean));
+            if (strlen($clean) >= 4) {
+                $search_nm = '%' . $clean . '%';
+                $stmt_nm = $conn->prepare("SELECT name, state_name, type, current_enrollment, contact_name FROM schools WHERE name LIKE ? AND status='Completed' LIMIT 3");
+                $stmt_nm->bind_param("s", $search_nm);
+                $stmt_nm->execute();
+                $r_nm = $stmt_nm->get_result();
+                if ($r_nm->num_rows > 0) {
+                    $nm_list = [];
+                    while ($row = $r_nm->fetch_assoc()) {
+                        $enroll  = $row['current_enrollment'] > 0 ? $row['current_enrollment'] . 'students' : 'enrollment?';
+                        $contact = !empty($row['contact_name']) ? ',contact:' . $row['contact_name'] : '';
+                        $nm_list[] = $row['name'] . '(' . ($row['state_name'] ?? '?') . ',' . ($row['type'] ?? '?') . ',' . $enroll . $contact . ')';
+                    }
+                    $conditional_context .= "\nSchoolDetail:" . implode('; ', $nm_list);
+                }
+                $stmt_nm->close();
+            }
+        }
+
+        // ── Step 3: Assemble final system prompt ──────────────────────────────
+        $system_prompt = 'You are a helpful assistant for the Learn and Help program. '
+            . 'Answer questions about the organization, its schools, classes, board members, instructors, events, and book library. '
+            . 'Use ONLY the structured DB data below — do not invent names, numbers, or facts not present in the data. '
+            . 'IMPORTANT: When asked how many schools the program supports, the answer is ProgramTotal (completed active schools). '
+            . 'BySponsor values are subsets of ProgramTotal, not the total itself. '
+            . 'FORMAT RULES: Start lists with a one-line summary. Use "•" bullet points (not numbered lists). '
+            . 'If TotalInState exceeds 15, end with "...and N more." Keep responses concise.'
+            . ($llm_keywords !== '' ? ' Additional context: ' . $llm_keywords : '')
+            . $db_context
+            . $conditional_context;
+        if (strlen($system_prompt) > 2800) $system_prompt = substr($system_prompt, 0, 2797) . '...';
+
         $payload = json_encode([
             'model'      => 'claude-haiku-4-5-20251001',
             'max_tokens' => $llm_tokens,
@@ -250,7 +496,7 @@ function processQuestion($conn, $msg, $original, &$handler = null) {
     }
 
     // ── Total school count ────────────────────────────────────────────────────
-    if (preg_match('/(how many|total|count|number of).*(school|librar)/', $msg) && !containsFilter($msg)) {
+    if (preg_match('/(how many|total|count|number of).*(school|librar)/', $msg) && !containsFilter($msg) && !preg_match('/student|enroll|served/', $msg)) {
         $handler = 'TotalCount';
         $r       = $conn->query("SELECT COUNT(*) as cnt FROM schools WHERE status = 'Completed'");
         $total   = $r->fetch_assoc()['cnt'];
