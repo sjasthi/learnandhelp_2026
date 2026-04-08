@@ -1,0 +1,115 @@
+Learn and Help
+Empowering Minds, Inspiring Generosity!
+End-User Guide | 2026
+
+1. About Learn and Help
+Learn and Help is a nonprofit program (EIN: 39-5158217) where middle and high school students learn computational thinking and computer programming. Proceeds from this program are used to support schools in need by providing books, educational materials, and resources.
+Our Impact So Far:
+
+200 schools supported
+3,455 books shipped
+151 students empowered
+
+Donations to Learn and Help are tax-deductible as permitted by law. To learn more, visit www.learnandhelp.com.
+
+2. Navigating the Website
+The navigation bar at the top of every page gives you quick access to all sections:
+
+About Us: Learn about our mission, team, and nonprofit status.
+Learn: Browse available classes and course information.
+Blog: Read announcements, news, and updates from our team.
+Enroll Now: Sign up for a class.
+FAQs: Find answers to frequently asked questions.
+Events: View upcoming events and activities.
+Help: See our impact, nominate schools, recommend nonprofits, and use our chatbot.
+Login / My Account: Log in or manage your account.
+
+
+3. Creating an Account & Logging In
+3.1 Creating an Account
+
+Click Login in the top-right corner of the navigation bar.
+On the Login page, look below the password field for the option to create a new account.
+Fill in your details and submit the form.
+You now have a regular user account.
+
+3.2 Logging In
+
+Click Login in the navigation bar.
+Enter your email and password.
+Click the Login button.
+Once logged in, the navigation bar will update to show My Account and Log Off.
+
+
+4. Browsing Classes
+Click Learn in the navigation bar to explore available courses.
+Python 101
+
+Introduction to Python — perfect for absolute beginners with no prior programming experience.
+Students can prepare for the AP CS Principles exam and earn PCEP (Certified Entry-Level Python Programmer) certification.
+Next batch runs September 2026 to May 2027 on weekends.
+
+Python DS (Data Science)
+
+An advanced course for students who have completed Python 101.
+Covers Object-Oriented Programming (OOP), NumPy, Pandas, and visualization tools such as Matplotlib.
+Students complete a capstone solo project.
+Prerequisite: Python 101.
+
+You can also view instructor profiles on the Learn page for more information about who teaches each course.
+
+5. Enrolling in a Class
+
+Click Enroll Now in the navigation bar.
+Review the available classes and select the one you want to join.
+Complete the enrollment form with your details.
+Submit your enrollment request.
+
+
+6. Help & Community Impact
+Click Help in the navigation bar to access the following:
+
+See Our Impact: View statistics on schools supported, books shipped, and students empowered.
+Schools We Supported: Browse the list of schools that have received donations.
+Books We Shipped: See the books and educational materials that have been delivered.
+Nominate a School: Know a school in need? Submit a nomination for support.
+Recommend a Non-Profit: Suggest a nonprofit organization for us to consider partnering with.
+Chatbot: Use our built-in chatbot to get quick answers about the program. You can ask questions such as:
+  - How many schools does Learn and Help support?
+  - Which schools are in Andhra Pradesh?
+  - Which school has the most students?
+  - Who are the board members?
+  - What classes are offered?
+  - Tell me about upcoming events.
+  The chatbot answers using live data from our database, so responses are always current and accurate.
+
+
+7. About Us
+Click About Us in the navigation bar to learn more about the organization:
+
+Mission: Read our mission statement, vision, and core values.
+Governing Board: Meet the active board members who oversee the organization, including their roles, locations, and bios.
+LEAD Council: Learn about the Learn and Help Emerging Advisors and Directors (LEAD) — a student leadership opportunity open to advanced Python students. The council gives students a voice in organizational decisions.
+Bylaws: View the organization's governing bylaws.
+Contact Us: Find contact information for reaching the Learn and Help team.
+
+
+8. Books & Library
+Click Help in the navigation bar, then select Books We Shipped to browse our educational book library.
+
+Over 620 books are available, organized by grade level (Primary School, Upper Primary, High School, and more).
+Each entry shows the title, author, publisher, year, page count, and availability status.
+These books are distributed to supported schools in India as part of the Learn and Help charitable mission.
+
+
+9. Events & Blog
+Events
+Click Events in the navigation bar to see upcoming Learn and Help activities, workshops, and community gatherings.
+Blog
+Click Blog to read the latest announcements and news from the Learn and Help team, including milestone updates like our 501(c)(3) nonprofit status.
+
+10. Contact Us
+
+Email: Siva.Jasthi@gmail.com
+Website: www.learnandhelp.com
+Social Media: Follow us on Facebook, X (Twitter), and Instagram — links are in the footer of the website.
