@@ -2,13 +2,15 @@
   <div class="footer-container">
     <div class="footer-left">
       <div class="footer-social">
-        
         <a href="https://www.facebook.com/learnnhelp" target="_blank" rel="noopener noreferrer">
-  <img src="images/icons/facebook.svg" alt="Facebook"">
-</a>
-
-        <img src="images/icons/X.svg" alt="X">
-        <img src="images/icons/instagram.svg" alt="Instagram">
+          <img src="images/icons/facebook.svg" alt="Facebook">
+        </a>
+        <a href="https://www.twitter.com" target="_blank" rel="noopener noreferrer">
+          <img src="images/icons/X.svg" alt="X">
+        </a>
+        <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">
+          <img src="images/icons/instagram.svg" alt="Instagram">
+        </a>
       </div>
       <p class="footer-copyright">
         &copy; <?php echo date("Y"); ?> Learn and Help.
@@ -16,13 +18,13 @@
     </div>
     <div class="footer-right">
       <div class="footer-links">
-        <a href="http://localhost/learnandhelp_2026/index.php">Home</a>
-        <a href="http://localhost/learnandhelp_2026/books.php">Books</a>
-        <a href="http://localhost/learnandhelp_2026/enroll.php">Enroll Now</a>
-        <a href="http://localhost/learnandhelp_2026/schools.php">Schools</a>
+        <a href="index.php">Home</a>
+        <a href="books.php">Books</a>
+        <a href="enroll.php">Enroll Now</a>
+        <a href="schools.php">Schools</a>
       </div>
       <div class="footer-contact">
-        <p> Contact us at <a href="mailto:Siva.Jasthi@gmail.com">Siva.Jasthi@gmail.com</a></p>
+        <p>Contact us at <a href="mailto:Siva.Jasthi@gmail.com">Siva.Jasthi@gmail.com</a></p>
       </div>
     </div>
   </div>

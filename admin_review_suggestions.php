@@ -1,260 +1,165 @@
-<?php 
-// Start the session if it is not already started
+<?php
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Block unauthorized users from accessing the page
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+// Block unauthorized users
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     http_response_code(403);
     die('Forbidden');
 }
 
-// Include database configuration and connect to the database
-require 'db_configuration.php';
-$conn = new mysqli(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_DATABASE);
+require 'db_configuration.php'; // provides $db (mysqli)
 
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
-
-// Fetch suggested schools - ordered by latest created first
-$sql = "SELECT * FROM schools WHERE status = 'Proposed' ORDER BY id DESC";
-$result = $conn->query($sql);
+// Fetch proposed schools
+$result = $db->query("SELECT * FROM schools WHERE status = 'Proposed' ORDER BY id DESC");
+$rows   = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
 <head>
     <meta charset="UTF-8">
-    <title>Suggested Schools | Admin Review</title>
-    
-    <!-- Main CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/icon_logo.png" type="image/icon type">
+    <title>Suggested Schools – Administration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
-    
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/dataTables.bootstrap4.min.css">
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- jQuery and DataTables JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script>
-    
-    <!-- DataTables Buttons Extension for Excel Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/buttons.html5.min.js"></script>
-    
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet">
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
     <style>
-        :root { --accent:#99D930; }
-        .accent-text { color: var(--accent); }
-
-        /* Header banner */
-        .intro-banner { 
-            background:#1a1a1a; 
-            color:#fff; 
-            text-align:center; 
-            padding:24px 20px 20px; 
-        }
-        .intro-banner h1 { 
-            font-family:'Montserrat',sans-serif; 
-            font-size:3rem; 
-            font-weight:900; 
-            margin:0; 
-        }
-        .intro-banner h1 .accent-text { color:var(--accent); }
-
         body {
-            margin: 0;
-            font-family: 'Montserrat', sans-serif;
             background: #f8f8f8;
-            color: #252525;
-            overflow-x: hidden;
+            margin: 0;
+            font-family: 'Roboto', Arial, sans-serif;
         }
 
-        .container {
-            width: 95%;
-            max-width: 100%;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .table-container {
+        /* ── Banner ── */
+        .banner-wrapper {
+            width: 100vw;
+            left: 50%;
+            margin-left: -50vw;
+            height: 220px;
             background: #fff;
-            border-radius: 12px;
+            overflow: hidden;
             box-shadow: 0 4px 24px rgba(0,0,0,.08);
-            padding: 30px;
-            overflow-x: auto;
+            position: relative;
         }
-
-        .export-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
+        .banner-wrapper img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
         }
-
-        .btn-export {
-            background: var(--accent);
-            color: #252525;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-export:hover {
-            background: #8cc428;
-            transform: translateY(-2px);
-        }
-
-        .page-size-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-        }
-
-        .page-size-control select {
-            padding: 8px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        /* DataTable styling - Full width */
-        .dataTables_wrapper {
-            margin-top: 20px;
-            width: 100%;
-        }
-
-        table.dataTable {
-            width: 100% !important;
-            border-collapse: collapse;
-            table-layout: auto;
-        }
-
-        table.dataTable thead th {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #252525;
-            font-weight: 700;
-            padding: 16px 12px;
-            border-bottom: 2px solid #dee2e6;
-            text-align: left;
+        .banner-title {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            font-size: 3em;
+            font-weight: 900;
+            color: #99d930;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.44);
+            letter-spacing: 1px;
+            z-index: 2;
             white-space: nowrap;
         }
 
-        table.dataTable tbody td {
-            padding: 12px;
-            border-bottom: 1px solid #dee2e6;
-            vertical-align: middle;
+        /* ── Page wrapper ── */
+        .page-wrap {
+            max-width: 1400px;
+            margin: 36px auto 60px auto;
+            padding: 0 18px;
         }
 
-        table.dataTable tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        /* Action buttons styling */
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
+        /* ── Back link ── */
+        .back-link {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 4px;
-            min-width: 70px;
-            height: 32px;
-        }
-
-        .btn-move {
-            background: var(--accent);
-            color: #252525;
-        }
-
-        .btn-move:hover {
-            background: #8cc428;
-            transform: translateY(-1px);
+            gap: 6px;
+            margin-bottom: 18px;
+            font-weight: 700;
+            color: #274606;
             text-decoration: none;
-            color: #252525;
+            font-size: .97em;
+        }
+        .back-link:hover { color: #99d930; }
+
+        /* ── Card ── */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 6px 32px rgba(80,120,180,0.09);
+            border: 2px solid #99d930;
+            padding: 24px 28px;
+            margin-bottom: 28px;
         }
 
-        .btn-update {
-            background: #007bff;
-            color: white;
-        }
-
-        .btn-update:hover {
-            background: #0056b3;
-            transform: translateY(-1px);
-            text-decoration: none;
-            color: white;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background: #c82333;
-            transform: translateY(-1px);
-        }
-
-        /* Column widths */
-        .actions-col { width: 140px; min-width: 140px; }
-        .school-name-col { min-width: 180px; }
-        .contact-name-col { min-width: 140px; }
-        .contact-mobile-col { min-width: 120px; }
-        .commitment-col { min-width: 200px; }
-
-        /* Stack action buttons vertically */
-        .action-buttons {
+        /* ── Toolbar ── */
+        .toolbar {
             display: flex;
-            flex-direction: column;
-            gap: 5px;
-            width: 130px;
-        }
-        .action-buttons form {
-            display: block;
-            width: 100%;
-        }
-        .action-btn {
-            width: 100%;
-            box-sizing: border-box;
-            justify-content: center;
-            text-align: center;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
         }
 
-        /* Pending count badge */
+        /* ── Pending badge ── */
         .pending-badge {
             display: inline-block;
             background: #e65100;
             color: #fff;
             border-radius: 20px;
             padding: 2px 14px;
-            font-size: 1rem;
+            font-size: .85em;
             font-weight: 700;
-            margin-left: 12px;
+            margin-left: 10px;
             vertical-align: middle;
         }
 
-        /* Truncate long commitment text */
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: .88em;
+            font-weight: 700;
+            font-family: 'Roboto', sans-serif;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .18s, transform .12s;
+            white-space: nowrap;
+        }
+        .btn-green   { background: #99d930; color: #274606; box-shadow: 0 2px 8px rgba(153,217,48,.25); }
+        .btn-green:hover   { background: #85c220; transform: translateY(-1px); color: #274606; }
+        .btn-edit    { background: #f0fad8; color: #274606; border: 1.5px solid #99d930; }
+        .btn-edit:hover    { background: #e2f5b2; color: #274606; }
+        .btn-danger  { background: #fff0f0; color: #c00; border: 1.5px solid #f99; }
+        .btn-danger:hover  { background: #ffe0e0; }
+
+        /* ── Action buttons column ── */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 140px;
+        }
+        .action-buttons form { display: block; width: 100%; }
+        .action-buttons .btn { width: 100%; box-sizing: border-box; justify-content: center; }
+
+        /* ── Commitment text truncation ── */
         .commitment-text {
             max-width: 260px;
             white-space: nowrap;
@@ -273,196 +178,171 @@ $result = $conn->query($sql);
             border-radius: 4px;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .export-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .table-container {
-                padding: 15px;
-            }
-            
-            table.dataTable thead th,
-            table.dataTable tbody td {
-                padding: 8px;
-                font-size: 14px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                gap: 4px;
-                min-width: 80px;
-            }
-
-            .action-btn {
-                min-width: 60px;
-                font-size: 11px;
-            }
-        }
-
-        /* Custom DataTables styling */
-        .dataTables_length select,
-        .dataTables_filter input {
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .dataTables_info,
-        .dataTables_paginate {
-            margin-top: 20px;
-        }
-
-        .paginate_button {
-            padding: 8px 12px !important;
-            margin: 0 2px !important;
-        }
-
-        .paginate_button.current {
-            background: var(--accent) !important;
-            color: #252525 !important;
-            border: 1px solid var(--accent) !important;
-        }
-
-        .no-data {
+        /* ── Empty state ── */
+        .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #666;
-            font-size: 1.2rem;
+            color: #888;
+            padding: 50px 20px;
+            font-size: 1.05em;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: #ccc;
+            display: block;
+            margin-bottom: 16px;
         }
 
-        /* Remove table width constraints */
-        .dataTables_scrollX {
-            overflow-x: auto;
+        /* ── DataTables overrides ── */
+        .dataTables_wrapper .dataTables_length   { float: left; }
+        .dataTables_wrapper .dataTables_filter   { float: right; clear: none; }
+        .dataTables_wrapper .dataTables_info     { clear: both; float: left; padding-top: 8px; }
+        .dataTables_wrapper .dataTables_paginate { float: right; padding-top: 8px; }
+
+        @media (max-width: 680px) {
+            .banner-title { font-size: 2em; }
+            .card { padding: 14px 10px; }
         }
     </style>
 </head>
-
 <body>
-    <?php
-    include 'show-navbar.php';
-    show_navbar();
-    ?>
-    
-    <section class="intro-banner">
-        <h1>Suggested <span class="accent-text">Schools</span>
-            <?php if ($result->num_rows > 0): ?>
-                <span class="pending-badge"><?= $result->num_rows ?> pending</span>
-            <?php endif; ?>
-        </h1>
-    </section>
 
-    <div class="container">
-        <div class="table-container">
-            <div class="export-controls">
-                <button id="exportExcel" class="btn-export">
-                    <i class="fas fa-file-excel"></i>
-                    Export to Excel
-                </button>
-            </div>
+<?php
+include 'show-navbar.php';
+show_navbar();
+?>
 
-            <?php if ($result->num_rows > 0): ?>
-                <table id="suggestionsTable" class="table table-striped table-bordered">
-                    <thead>
-                        <tr>
-                            <th class="actions-col">Actions</th>
-                            <th class="school-name-col">School Name</th>
-                            <th class="contact-name-col">Contact Name</th>
-                            <th class="contact-mobile-col">Contact Mobile</th>
-                            <th class="commitment-col">Commitment Statement</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $result->fetch_assoc()): ?>
-                            <tr>
-                                <td>
-                                    <div class="action-buttons">
-                                        <form action="move_to_schools.php" method="post" 
-                                              onsubmit="return confirm('Mark this school as Completed?');">
-                                            <input type="hidden" name="school_id" value="<?= $row['id'] ?>">
-                                            <button type="submit" class="action-btn btn-move" title="Mark as Completed">
-                                                <i class="fas fa-check"></i>
-                                                Mark as Completed
-                                            </button>
-                                        </form>
-                                        
-                                        <a href="update_suggestion.php?id=<?= $row['id'] ?>" 
-                                           class="action-btn btn-update" title="Update Suggestion">
-                                            <i class="fas fa-edit"></i>
-                                            Update
-                                        </a>
-                                        
-                                        <form action="delete_suggestion.php" method="post" 
-                                              onsubmit="return confirm('Are you sure you want to delete this suggestion?');">
-                                            <input type="hidden" name="school_id" value="<?= $row['id'] ?>">
-                                            <button type="submit" class="action-btn btn-delete" title="Delete Suggestion">
-                                                <i class="fas fa-trash"></i>
-                                                Delete
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                                <td><?= htmlspecialchars($row['name']) ?></td>
-                                <td><?= htmlspecialchars($row['contact_name']) ?></td>
-                                <td><?= htmlspecialchars($row['contact_phone']) ?></td>
-                                <td><div class="commitment-text" title="<?= htmlspecialchars($row['commitment_statement'] ?? '') ?>"><?= htmlspecialchars($row['commitment_statement'] ?? '—') ?></div></td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <div class="no-data">
-                    <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc; margin-bottom: 20px; display: block;"></i>
-                    No suggested schools found.
-                </div>
-            <?php endif; ?>
+<div class="banner-wrapper">
+    <img src="images/banner_images/Admin/block-pattern.jpg" alt="Admin banner">
+    <h1 class="banner-title">
+        Suggested Schools
+        <?php if (count($rows) > 0): ?>
+            <span class="pending-badge"><?= count($rows) ?> pending</span>
+        <?php endif; ?>
+    </h1>
+</div>
+
+<div class="page-wrap">
+
+    <a href="administration.php" class="back-link">&#8592; Back to Administration</a>
+
+    <div class="card">
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <span style="font-size:.97em;color:#274606;font-weight:700;">
+                Proposed schools awaiting review
+            </span>
+            <button id="exportCsv" class="btn btn-green">
+                <i class="fas fa-file-excel"></i> Export to CSV
+            </button>
         </div>
-    </div>
 
-    <script>
-        $(document).ready(function() {
-            // Initialize DataTable
-            var table = $('#suggestionsTable').DataTable({
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                "autoWidth": false,
-                "order": [],
-                "columnDefs": [{ "orderable": false, "targets": 0 }],
-                "language": {
-                    "info": "Showing _START_ to _END_ of _TOTAL_ suggestions",
-                    "infoEmpty": "No suggestions to show",
-                    "infoFiltered": "(filtered from _MAX_ total)"
-                }
-            });
+        <?php if (!empty($rows)): ?>
+        <div style="overflow-x:auto;">
+            <table id="suggestionsTable" class="display compact" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Actions</th>
+                        <th>School Name</th>
+                        <th>Contact Name</th>
+                        <th>Contact Mobile</th>
+                        <th>Commitment Statement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $row): ?>
+                    <tr>
+                        <td>
+                            <div class="action-buttons">
+                                <form action="move_to_schools.php" method="POST"
+                                      onsubmit="return confirm('Mark this school as Completed?');">
+                                    <input type="hidden" name="school_id"
+                                           value="<?= intval($row['id']) ?>">
+                                    <button type="submit" class="btn btn-green">
+                                        <i class="fas fa-check"></i> Mark Completed
+                                    </button>
+                                </form>
 
-            $('#exportExcel').on('click', function() {
-                var tableData = [['School Name', 'Contact Name', 'Contact Mobile', 'Commitment Statement']];
-                table.rows().every(function() {
-                    var d = this.data();
-                    tableData.push([d[1], d[2], d[3], d[4]]);
-                });
-                var csv = tableData.map(function(row) {
-                    return row.map(function(cell) {
-                        var text = $('<div>').html(cell).text();
-                        return (text.includes(',') || text.includes('"')) ? '"' + text.replace(/"/g, '""') + '"' : text;
-                    }).join(',');
-                }).join('\n');
-                var link = document.createElement('a');
-                link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
-                link.setAttribute('download', 'suggested_schools_' + new Date().toISOString().split('T')[0] + '.csv');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
+                                <a href="update_suggestion.php?id=<?= intval($row['id']) ?>"
+                                   class="btn btn-edit">
+                                    <i class="fas fa-edit"></i> Update
+                                </a>
+
+                                <form action="delete_suggestion.php" method="POST"
+                                      onsubmit="return confirm('Delete this suggestion? This cannot be undone.');">
+                                    <input type="hidden" name="school_id"
+                                           value="<?= intval($row['id']) ?>">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                        <td><?= htmlspecialchars($row['name']           ?? '', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['contact_name']   ?? '', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['contact_phone']  ?? '', ENT_QUOTES) ?></td>
+                        <td>
+                            <div class="commitment-text"
+                                 title="<?= htmlspecialchars($row['commitment_statement'] ?? '', ENT_QUOTES) ?>">
+                                <?= htmlspecialchars($row['commitment_statement'] ?? '—', ENT_QUOTES) ?>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                No suggested schools found.
+            </div>
+        <?php endif; ?>
+
+    </div><!-- /card -->
+
+</div><!-- /page-wrap -->
+
+<script>
+    $(document).ready(function () {
+        var table = $('#suggestionsTable').DataTable({
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            autoWidth: false,
+            order: [],
+            columnDefs: [{ orderable: false, targets: 0 }],
+            language: {
+                info:         "Showing _START_ to _END_ of _TOTAL_ suggestions",
+                infoEmpty:    "No suggestions to show",
+                infoFiltered: "(filtered from _MAX_ total)"
+            }
         });
-    </script>
 
-    <?php
-    // Close the database connection
-    $conn->close();
-    include 'footer.php';
-    ?>
+        // CSV export
+        $('#exportCsv').on('click', function () {
+            var tableData = [['School Name', 'Contact Name', 'Contact Mobile', 'Commitment Statement']];
+            table.rows().every(function () {
+                var d = this.data();
+                tableData.push([d[1], d[2], d[3], d[4]]);
+            });
+            var csv = tableData.map(function (row) {
+                return row.map(function (cell) {
+                    var text = $('<div>').html(cell).text();
+                    return (text.includes(',') || text.includes('"'))
+                        ? '"' + text.replace(/"/g, '""') + '"'
+                        : text;
+                }).join(',');
+            }).join('\n');
+            var link = document.createElement('a');
+            link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+            link.setAttribute('download', 'suggested_schools_' + new Date().toISOString().split('T')[0] + '.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+</script>
+
+<?php include 'footer.php'; ?>
 </body>
 </html>

@@ -1,607 +1,568 @@
-<?php
-$status = session_status();
-if ($status == PHP_SESSION_NONE) { session_start(); }
-
-// Block unauthorized users from accessing the page
-if (isset($_SESSION['role'])) {
-  if ($_SESSION['role'] != 'admin') {
-    http_response_code(403); die('Forbidden');
-  }
-} else {
-  http_response_code(403); die('Forbidden');
-}
-
-require 'db_configuration.php';
-// Create connection
-$conn = new mysqli(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_DATABASE);
-// Check connection
-if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
-
-// ---------------- Existing library stats ----------------
-$sql = "SELECT count(*) AS num_schools, sum(current_enrollment) AS num_beneficiaries FROM `schools`";
-$result = $conn->query($sql);
-$total_array = $result->fetch_assoc();
-$num_schools = (int)$total_array['num_schools'];
-$num_beneficiaries = (int)$total_array['num_beneficiaries'];
-
-// Total registrations (existing stat)
-$sql = "SELECT count(*) AS num_registrations FROM `registrations`";
-$result = $conn->query($sql);
-$total_array = $result->fetch_assoc();
-$num_registrations = (int)$total_array['num_registrations'];
-
-// ---------------- NEW: Total number of users ----------------
-$sql = "SELECT COUNT(*) AS num_users FROM `users`";
-$resUsers = $conn->query($sql);
-$num_users = 0;
-if ($resUsers) {
-  $row = $resUsers->fetch_assoc();
-  $num_users = (int)($row['num_users'] ?? 0);
-}
-
-// ---------------- Helpers: column exists checks ----------------
-if (!function_exists('col_exists')) {
-  function col_exists($conn, $table, $col) {
-    // Sanitize table name - only allow alphanumeric and underscores
-    $safeTable = preg_replace('/[^A-Za-z0-9_]/', '', $table);
-    // Sanitize column name - only allow alphanumeric and underscores
-    $safeCol = preg_replace('/[^A-Za-z0-9_]/', '', $col);
-    
-    // Use INFORMATION_SCHEMA which is more reliable for checking column existence
-    $sql = "SELECT COUNT(*) as col_count FROM INFORMATION_SCHEMA.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
-            AND TABLE_NAME = ? 
-            AND COLUMN_NAME = ?";
-    
-    $stmt = $conn->prepare($sql);
-    
-    if (!$stmt) {
-      return false; // Failed to prepare statement
-    }
-    
-    $stmt->bind_param('ss', $safeTable, $safeCol);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result) {
-      $row = $result->fetch_assoc();
-      $exists = ($row && (int)$row['col_count'] > 0);
-    } else {
-      $exists = false;
-    }
-    
-    $stmt->close();
-    return $exists;
-  }
-}
-
-// ---------------- NEW: Registration summary by Class with emails ----------------
-$registration_by_class = [];
-$total_reg_count = 0;
-
-// Check if we have the necessary tables and columns for proper joins
-$registrations_has_offering_id = col_exists($conn, 'registrations', 'Offering_Id');
-$registrations_has_user_id = col_exists($conn, 'registrations', 'User_Id');
-$offerings_table_exists = col_exists($conn, 'offerings', 'Offering_Id');
-$offerings_has_class_id = col_exists($conn, 'offerings', 'Class_Id');
-$classes_table_exists = col_exists($conn, 'classes', 'Class_Id');
-$classes_has_name = col_exists($conn, 'classes', 'Class_Name');
-$users_has_email = col_exists($conn, 'users', 'Email');
-
-if ($registrations_has_offering_id && $offerings_table_exists && $offerings_has_class_id && 
-    $classes_table_exists && $classes_has_name && $registrations_has_user_id && $users_has_email) {
-  
-  // Get class registrations with emails
-  $sql = "SELECT 
-            COALESCE(c.Class_Name, CONCAT('Unknown Class (Offering ', r.Offering_Id, ')')) AS class_name, 
-            COUNT(*) AS cnt,
-            GROUP_CONCAT(DISTINCT u.Email SEPARATOR '; ') AS emails
-          FROM `registrations` r
-          LEFT JOIN `offerings` o ON r.Offering_Id = o.Offering_Id
-          LEFT JOIN `classes` c ON o.Class_Id = c.Class_Id
-          LEFT JOIN `users` u ON r.User_Id = u.User_Id
-          WHERE u.Email IS NOT NULL AND u.Email != ''
-          GROUP BY c.Class_Name, r.Offering_Id
-          ORDER BY c.Class_Name";
-  
-  if ($r = $conn->query($sql)) {
-    while ($row = $r->fetch_assoc()) {
-      $name = $row['class_name'] !== '' ? $row['class_name'] : 'Unspecified';
-      $cnt = (int)$row['cnt'];
-      $emails = $row['emails'] ?? '';
-      
-      // If multiple offerings have the same class name, combine them
-      if (isset($registration_by_class[$name])) {
-        $registration_by_class[$name]['count'] += $cnt;
-        // Merge emails and remove duplicates
-        $existing_emails = explode('; ', $registration_by_class[$name]['emails']);
-        $new_emails = explode('; ', $emails);
-        $all_emails = array_unique(array_merge($existing_emails, $new_emails));
-        $registration_by_class[$name]['emails'] = implode('; ', array_filter($all_emails));
-      } else {
-        $registration_by_class[$name] = [
-          'count' => $cnt,
-          'emails' => $emails
-        ];
-      }
-      $total_reg_count += $cnt;
-    }
-  }
-  
-} else if (col_exists($conn, 'registrations', 'Class_Name') && $registrations_has_user_id && $users_has_email) {
-  // Fallback: Direct Class_Name in registrations table with emails
-  $sql = "SELECT 
-            r.Class_Name AS class_name, 
-            COUNT(*) AS cnt,
-            GROUP_CONCAT(DISTINCT u.Email SEPARATOR '; ') AS emails
-          FROM `registrations` r
-          LEFT JOIN `users` u ON r.User_Id = u.User_Id
-          WHERE u.Email IS NOT NULL AND u.Email != ''
-          GROUP BY r.Class_Name
-          ORDER BY r.Class_Name";
-  if ($r = $conn->query($sql)) {
-    while ($row = $r->fetch_assoc()) {
-      $name = $row['class_name'] !== '' ? $row['class_name'] : 'Unspecified';
-      $registration_by_class[$name] = [
-        'count' => (int)$row['cnt'],
-        'emails' => $row['emails'] ?? ''
-      ];
-      $total_reg_count += (int)$row['cnt'];
-    }
-  }
-}
-
-// ---------------- NEW: Payment Summary with emails ----------------
-$payment_summary = [];
-$payment_col = null;
-if (col_exists($conn, 'registrations', 'payment_status')) { $payment_col = 'payment_status'; }
-else if (col_exists($conn, 'registrations', 'Payment_Status')) { $payment_col = 'Payment_Status'; }
-
-if ($payment_col && $registrations_has_user_id && $users_has_email) {
-  $sql = "SELECT 
-            LOWER(TRIM(r.$payment_col)) AS payment_status, 
-            COUNT(*) AS cnt,
-            GROUP_CONCAT(DISTINCT u.Email SEPARATOR '; ') AS emails
-          FROM `registrations` r
-          LEFT JOIN `users` u ON r.User_Id = u.User_Id
-          WHERE u.Email IS NOT NULL AND u.Email != ''
-          GROUP BY LOWER(TRIM(r.$payment_col))
-          ORDER BY payment_status";
-  
-  if ($r = $conn->query($sql)) {
-    while ($row = $r->fetch_assoc()) {
-      $status = $row['payment_status'] ?? 'other';
-      $payment_summary[$status] = [
-        'count' => (int)$row['cnt'],
-        'emails' => $row['emails'] ?? ''
-      ];
-    }
-  }
-}
-
-// ---------------- NEW: Users Not Registered Yet ----------------
-$unregistered_users = [];
-$total_unregistered = 0;
-
-// Check if both tables exist and have User_Id columns
-$users_has_user_id = col_exists($conn, 'users', 'User_Id');
-
-if ($users_has_user_id && $registrations_has_user_id) {
-  // Get user details for users not in registrations table
-  $user_display_fields = [];
-  
-  // Check what fields are available in users table for display
-  if (col_exists($conn, 'users', 'First_Name')) $user_display_fields[] = 'u.First_Name';
-  if (col_exists($conn, 'users', 'Last_Name')) $user_display_fields[] = 'u.Last_Name';
-  if (col_exists($conn, 'users', 'Email')) $user_display_fields[] = 'u.Email';
-  if (col_exists($conn, 'users', 'Phone')) $user_display_fields[] = 'u.Phone';
-  
-  // If no common display fields found, just use User_Id
-  if (empty($user_display_fields)) {
-    $user_display_fields[] = 'u.User_Id';
-  }
-  
-  $select_fields = 'u.User_Id, ' . implode(', ', $user_display_fields);
-  
-  $sql = "SELECT $select_fields
-          FROM `users` u
-          LEFT JOIN `registrations` r ON u.User_Id = r.User_Id
-          WHERE r.User_Id IS NULL
-          ORDER BY u.User_Id";
-  
-  if ($r = $conn->query($sql)) {
-    while ($row = $r->fetch_assoc()) {
-      $unregistered_users[] = $row;
-      $total_unregistered++;
-    }
-  }
-}
-
-// Cleanup
-if (isset($result) && $result instanceof mysqli_result) { $result->free(); }
-$conn->close();
-?>
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="icon" href="images/icon_logo.png" type="image/icon type">
-  <title>Reports</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;900&display=swap" rel="stylesheet">
-  <link href="css/main.css" rel="stylesheet">
-  
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  
-  <!-- DataTables CSS -->
-  <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
-  <!-- DataTables Buttons CSS -->
-  <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet" type="text/css" />
-  
-  <!-- DataTables JS -->
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <!-- DataTables Buttons JS -->
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-  <!-- JSZip for Excel export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- Buttons HTML5 export -->
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-  
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  
-  <style>
-    body { margin: auto; max-width: 100%; }
-    .regular-table { 
-      border-collapse: collapse; 
-      width: 75%; 
-      margin: 3rem auto; 
-      table-layout: fixed; 
-    }
-    .regular-table th, .regular-table td { 
-      border: 1px solid #ddd; 
-      padding: 8px; 
-      text-align: center; 
-    }
-    .regular-table th { 
-      background-color: #f2f2f2; 
-    }
-    .regular-table .total-row td { 
-      font-weight: 700; 
-    }
-    
-    h2 { 
-      margin-top: 4rem; 
-      text-align: left; 
-      width: 90%; 
-      margin-left: auto; 
-      margin-right: auto; 
-    }
-    
-    /* DataTables styling */
-    .dataTables_wrapper {
-      width: 90%;
-      margin: 2rem auto;
-    }
-    
-    .dt-buttons {
-      margin-bottom: 10px;
-      float: right;
-      margin-left: 10px;
-    }
-    
-    .dt-button {
-      background-color: #28a745 !important;
-      color: white !important;
-      border: 1px solid #28a745 !important;
-      padding: 8px 16px !important;
-      border-radius: 4px !important;
-      font-weight: 500 !important;
-      margin-right: 5px !important;
-      font-size: 14px !important;
-    }
-    
-    .dt-button:hover {
-      background-color: #1e7e34 !important;
-      border-color: #1e7e34 !important;
-    }
-    
-    /* Copy email button styling */
-    .copy-btn {
-      background-color: #007bff;
-      color: white;
-      border: 1px solid #007bff;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-    
-    .copy-btn:hover {
-      background-color: #0056b3;
-      border-color: #0056b3;
-    }
-    
-    .copy-btn i {
-      margin-right: 4px;
-    }
-    
-    /* Toast notification */
-    .toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #28a745;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      z-index: 9999;
-      opacity: 0;
-      transform: translateX(100%);
-      transition: all 0.3s ease;
-    }
-    
-    .toast.show {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  </style>
-
-  <script>
-    function copyEmails(emails, source) {
-      if (!emails || emails.trim() === '') {
-        showToast('No emails to copy!', 'error');
-        return;
-      }
-      
-      // Create a temporary textarea to copy emails
-      const textarea = document.createElement('textarea');
-      textarea.value = emails;
-      document.body.appendChild(textarea);
-      textarea.select();
-      
-      try {
-        document.execCommand('copy');
-        showToast(`Emails copied to clipboard from ${source}!`, 'success');
-      } catch (err) {
-        showToast('Failed to copy emails', 'error');
-      }
-      
-      document.body.removeChild(textarea);
-    }
-    
-    function showToast(message, type) {
-      // Remove existing toast if any
-      const existingToast = document.querySelector('.toast');
-      if (existingToast) {
-        existingToast.remove();
-      }
-      
-      // Create new toast
-      const toast = document.createElement('div');
-      toast.className = `toast ${type === 'error' ? 'toast-error' : ''}`;
-      toast.textContent = message;
-      
-      if (type === 'error') {
-        toast.style.backgroundColor = '#dc3545';
-      }
-      
-      document.body.appendChild(toast);
-      
-      // Show toast
-      setTimeout(() => toast.classList.add('show'), 100);
-      
-      // Hide toast after 3 seconds
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-
-    $(document).ready(function() {
-      // Initialize DataTables for Registration Summary
-      $('#registration-table').DataTable({
-        "pageLength": 25,
-        "order": [[ 1, "desc" ]], // Order by count descending
-        "dom": 'Blfrtip',
-        "buttons": [
-          {
-            extend: 'excel',
-            text: '<i class="fas fa-file-excel"></i> Export to Excel',
-            title: 'Registration Summary - ' + new Date().toLocaleDateString(),
-            filename: function() {
-              return 'registration_summary_' + new Date().toISOString().slice(0,10);
-            },
-            exportOptions: {
-              columns: [0, 1] // Exclude the Copy Emails column
-            }
-          }
-        ],
-        "columnDefs": [
-          { "orderable": false, "targets": 2 } // Disable sorting on Copy Emails column
-        ]
-      });
-      
-      // Initialize DataTables for Payment Summary
-      $('#payment-table').DataTable({
-        "pageLength": 25,
-        "order": [[ 1, "desc" ]], // Order by count descending
-        "dom": 'Blfrtip',
-        "buttons": [
-          {
-            extend: 'excel',
-            text: '<i class="fas fa-file-excel"></i> Export to Excel',
-            title: 'Payment Summary - ' + new Date().toLocaleDateString(),
-            filename: function() {
-              return 'payment_summary_' + new Date().toISOString().slice(0,10);
-            },
-            exportOptions: {
-              columns: [0, 1] // Exclude the Copy Emails column
-            }
-          }
-        ],
-        "columnDefs": [
-          { "orderable": false, "targets": 2 } // Disable sorting on Copy Emails column
-        ]
-      });
-      
-      // Initialize DataTables for Unregistered Users
-      $('#unregistered-table').DataTable({
-        "pageLength": 25,
-        "order": [[ 0, "desc" ]], // Order by User ID descending
-        "dom": 'Blfrtip',
-        "buttons": [
-          {
-            extend: 'excel',
-            text: '<i class="fas fa-file-excel"></i> Export to Excel',
-            title: 'Unregistered Users - ' + new Date().toLocaleDateString(),
-            filename: function() {
-              return 'unregistered_users_' + new Date().toISOString().slice(0,10);
-            }
-          }
-        ]
-      });
-    });
-  </script>
-</head>
-<body>
-<?php 
-  include 'show-navbar.php';
-  show_navbar();
-?>
-<header class="inverse">
-  <div class="container">
-    <h1><span class="accent-text">Reports</span></h1>
-  </div>
-</header>
-
-<!-- MOVED TO TOP: Registration Summary -->
-<h2><b>Registration Summary</b></h2>
-<?php if (!empty($registration_by_class)): ?>
-  <table id="registration-table" class="display compact" style="width:100%">
-    <thead>
-      <tr>
-        <th>Class Name</th>
-        <th>Count</th>
-        <th>Copy Emails</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach ($registration_by_class as $className => $data): ?>
-        <tr>
-          <td><?php echo htmlspecialchars($className); ?></td>
-          <td><?php echo (int)$data['count']; ?></td>
-          <td style="text-align: center;">
-            <button class="copy-btn" onclick="copyEmails('<?php echo htmlspecialchars($data['emails'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($className); ?>')">
-              <i class="fas fa-copy"></i> Copy Emails
-            </button>
-          </td>
-        </tr>
-      <?php endforeach; ?>
-    </tbody>
-  </table>
-<?php else: ?>
-  <div style="width: 90%; margin: 2rem auto; text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 4px;">
-    No class-level registration data found.
-  </div>
-<?php endif; ?>
-
-<!-- Payment Summary with Copy Emails -->
-<h2><b>Payment Summary</b></h2>
-<?php if (!empty($payment_summary)): ?>
-  <table id="payment-table" class="display compact" style="width:100%">
-    <thead>
-      <tr>
-        <th>Payment Status</th>
-        <th>Count</th>
-        <th>Copy Emails</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach ($payment_summary as $status => $data): ?>
-        <tr>
-          <td><?php echo htmlspecialchars(ucfirst($status)); ?></td>
-          <td><?php echo (int)$data['count']; ?></td>
-          <td style="text-align: center;">
-            <button class="copy-btn" onclick="copyEmails('<?php echo htmlspecialchars($data['emails'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($status); ?> payments')">
-              <i class="fas fa-copy"></i> Copy Emails
-            </button>
-          </td>
-        </tr>
-      <?php endforeach; ?>
-    </tbody>
-  </table>
-<?php else: ?>
-  <div style="width: 90%; margin: 2rem auto; text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 4px;">
-    No payment data found.
-  </div>
-<?php endif; ?>
-
-<!-- Users Not Registered Yet as DataTable -->
-<h2><b>Users Not Registered Yet</b></h2>
-<?php if (!empty($unregistered_users)): ?>
-  <table id="unregistered-table" class="display compact" style="width:100%">
-    <thead>
-      <tr>
-        <th>User ID</th>
-        <?php 
-        // Dynamic headers based on available fields
-        $sample_user = $unregistered_users[0];
-        foreach ($sample_user as $field => $value) {
-          if ($field !== 'User_Id') {
-            $header = ucwords(str_replace('_', ' ', $field));
-            echo "<th>$header</th>";
-          }
-        }
-        ?>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach ($unregistered_users as $user): ?>
-        <tr>
-          <td><?php echo htmlspecialchars($user['User_Id']); ?></td>
-          <?php foreach ($user as $field => $value): ?>
-            <?php if ($field !== 'User_Id'): ?>
-              <td><?php echo htmlspecialchars($value ?? 'N/A'); ?></td>
-            <?php endif; ?>
-          <?php endforeach; ?>
-        </tr>
-      <?php endforeach; ?>
-    </tbody>
-  </table>
-<?php else: ?>
-  <div style="width: 90%; margin: 2rem auto; text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 4px;">
-    All users have registrations, or unable to determine unregistered users.
-  </div>
-<?php endif; ?>
-
-<!-- Existing: Library Information (keeping as regular table) -->
-<h2><b>Library Information</b></h2>
-<table class="regular-table">
-  <tr><th>Statistic</th><th>Total</th></tr>
-  <tr><td>Schools With Libraries</td><td><?php echo $num_schools; ?></td></tr>
-  <tr><td>Student Beneficiaries</td><td><?php echo $num_beneficiaries; ?></td></tr>
-  <tr><td>Books Given To Schools</td><td>N/A</td></tr>
-  <tr><td>Cost / Support Provided</td><td>N/A</td></tr>
-</table>
-
-<!-- Total Number of Users Registered (keeping as regular table) -->
-<h2><b>Total Number of Users Registered</b></h2>
-<table class="regular-table">
-  <tr><th>Statistic</th><th>Total</th></tr>
-  <tr><td>Users</td><td><?php echo $num_users; ?></td></tr>
-</table>
-
-<!-- Existing: Student Information (keeping as regular table) -->
-<h2><b>Student Information</b></h2>
-<table class="regular-table">
-  <tr><th>Statistic</th><th>Total</th></tr>
-  <tr><td>Class Registrations</td><td><?php echo $num_registrations; ?></td></tr>
-  <tr><td>Earned Certification</td><td>N/A</td></tr>
-  <tr><td>Success Rate</td><td>N/A</td></tr>
-</table>
-
-</body>
+<?php
+$status = session_status();
+if ($status == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Block unauthorized users
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    die('Forbidden');
+}
+
+require 'db_configuration.php'; // provides $db (mysqli)
+
+// ── Library stats ─────────────────────────────────────────────
+$result          = $db->query("SELECT COUNT(*) AS num_schools, SUM(current_enrollment) AS num_beneficiaries FROM schools");
+$total_array     = $result->fetch_assoc();
+$num_schools     = (int)($total_array['num_schools']      ?? 0);
+$num_beneficiaries = (int)($total_array['num_beneficiaries'] ?? 0);
+
+// ── Total registrations ───────────────────────────────────────
+$result           = $db->query("SELECT COUNT(*) AS num_registrations FROM registrations");
+$total_array      = $result->fetch_assoc();
+$num_registrations = (int)($total_array['num_registrations'] ?? 0);
+
+// ── Total users ───────────────────────────────────────────────
+$result    = $db->query("SELECT COUNT(*) AS num_users FROM users");
+$num_users = (int)($result->fetch_assoc()['num_users'] ?? 0);
+
+// ── Column-exists helper (uses $db) ───────────────────────────
+if (!function_exists('col_exists')) {
+    function col_exists($db, $table, $col) {
+        $safeTable = preg_replace('/[^A-Za-z0-9_]/', '', $table);
+        $safeCol   = preg_replace('/[^A-Za-z0-9_]/', '', $col);
+        $sql  = "SELECT COUNT(*) AS col_count
+                 FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME   = ?
+                   AND COLUMN_NAME  = ?";
+        $stmt = $db->prepare($sql);
+        if (!$stmt) return false;
+        $stmt->bind_param('ss', $safeTable, $safeCol);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $row && (int)$row['col_count'] > 0;
+    }
+}
+
+// ── Registration summary by class ─────────────────────────────
+$registration_by_class = [];
+$total_reg_count       = 0;
+
+$reg_has_offering = col_exists($db, 'registrations', 'Offering_Id');
+$reg_has_user     = col_exists($db, 'registrations', 'User_Id');
+$off_exists       = col_exists($db, 'offerings',     'Offering_Id');
+$off_has_class    = col_exists($db, 'offerings',     'Class_Id');
+$cls_exists       = col_exists($db, 'classes',       'Class_Id');
+$cls_has_name     = col_exists($db, 'classes',       'Class_Name');
+$usr_has_email    = col_exists($db, 'users',         'Email');
+
+if ($reg_has_offering && $off_exists && $off_has_class && $cls_exists && $cls_has_name && $reg_has_user && $usr_has_email) {
+    $sql = "SELECT
+                COALESCE(c.Class_Name, CONCAT('Unknown Class (Offering ', r.Offering_Id, ')')) AS class_name,
+                COUNT(*) AS cnt,
+                GROUP_CONCAT(DISTINCT u.Email SEPARATOR '; ') AS emails
+            FROM registrations r
+            LEFT JOIN offerings o ON r.Offering_Id = o.Offering_Id
+            LEFT JOIN classes   c ON o.Class_Id    = c.Class_Id
+            LEFT JOIN users     u ON r.User_Id     = u.User_Id
+            WHERE u.Email IS NOT NULL AND u.Email != ''
+            GROUP BY c.Class_Name, r.Offering_Id
+            ORDER BY c.Class_Name";
+    if ($r = $db->query($sql)) {
+        while ($row = $r->fetch_assoc()) {
+            $name = $row['class_name'] !== '' ? $row['class_name'] : 'Unspecified';
+            $cnt  = (int)$row['cnt'];
+            $emails = $row['emails'] ?? '';
+            if (isset($registration_by_class[$name])) {
+                $registration_by_class[$name]['count'] += $cnt;
+                $merged = array_unique(array_merge(
+                    explode('; ', $registration_by_class[$name]['emails']),
+                    explode('; ', $emails)
+                ));
+                $registration_by_class[$name]['emails'] = implode('; ', array_filter($merged));
+            } else {
+                $registration_by_class[$name] = ['count' => $cnt, 'emails' => $emails];
+            }
+            $total_reg_count += $cnt;
+        }
+    }
+} elseif (col_exists($db, 'registrations', 'Class_Name') && $reg_has_user && $usr_has_email) {
+    $sql = "SELECT r.Class_Name AS class_name, COUNT(*) AS cnt,
+                   GROUP_CONCAT(DISTINCT u.Email SEPARATOR '; ') AS emails
+            FROM registrations r
+            LEFT JOIN users u ON r.User_Id = u.User_Id
+            WHERE u.Email IS NOT NULL AND u.Email != ''
+            GROUP BY r.Class_Name
+            ORDER BY r.Class_Name";
+    if ($r = $db->query($sql)) {
+        while ($row = $r->fetch_assoc()) {
+            $name = $row['class_name'] !== '' ? $row['class_name'] : 'Unspecified';
+            $registration_by_class[$name] = ['count' => (int)$row['cnt'], 'emails' => $row['emails'] ?? ''];
+            $total_reg_count += (int)$row['cnt'];
+        }
+    }
+}
+
+// ── Payment summary ───────────────────────────────────────────
+$payment_summary = [];
+$payment_col     = null;
+if      (col_exists($db, 'registrations', 'payment_status'))  $payment_col = 'payment_status';
+elseif  (col_exists($db, 'registrations', 'Payment_Status'))  $payment_col = 'Payment_Status';
+
+if ($payment_col && $reg_has_user && $usr_has_email) {
+    $sql = "SELECT LOWER(TRIM(r.$payment_col)) AS payment_status,
+                   COUNT(*) AS cnt,
+                   GROUP_CONCAT(DISTINCT u.Email SEPARATOR '; ') AS emails
+            FROM registrations r
+            LEFT JOIN users u ON r.User_Id = u.User_Id
+            WHERE u.Email IS NOT NULL AND u.Email != ''
+            GROUP BY LOWER(TRIM(r.$payment_col))
+            ORDER BY payment_status";
+    if ($r = $db->query($sql)) {
+        while ($row = $r->fetch_assoc()) {
+            $payment_summary[$row['payment_status'] ?? 'other'] = [
+                'count'  => (int)$row['cnt'],
+                'emails' => $row['emails'] ?? '',
+            ];
+        }
+    }
+}
+
+// ── Unregistered users ────────────────────────────────────────
+$unregistered_users = [];
+$usr_has_id         = col_exists($db, 'users', 'User_Id');
+
+if ($usr_has_id && $reg_has_user) {
+    $fields = ['u.User_Id'];
+    foreach (['First_Name','Last_Name','Email','Phone'] as $f) {
+        if (col_exists($db, 'users', $f)) $fields[] = "u.$f";
+    }
+    $select = implode(', ', $fields);
+    $sql = "SELECT $select
+            FROM users u
+            LEFT JOIN registrations r ON u.User_Id = r.User_Id
+            WHERE r.User_Id IS NULL
+            ORDER BY u.User_Id";
+    if ($r = $db->query($sql)) {
+        while ($row = $r->fetch_assoc()) {
+            $unregistered_users[] = $row;
+        }
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/icon_logo.png" type="image/icon type">
+    <title>Reports – Administration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet">
+    <!-- DataTables Buttons CSS -->
+    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <!-- DataTables Buttons JS -->
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+    <!-- JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Buttons HTML5 -->
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body {
+            background: #f8f8f8;
+            margin: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+
+        /* ── Banner ── */
+        .banner-wrapper {
+            width: 100vw;
+            left: 50%;
+            margin-left: -50vw;
+            height: 220px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,.08);
+            position: relative;
+        }
+        .banner-wrapper img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+        }
+        .banner-title {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            font-size: 3em;
+            font-weight: 900;
+            color: #99d930;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.44);
+            letter-spacing: 1px;
+            z-index: 2;
+            white-space: nowrap;
+        }
+
+        /* ── Page wrapper ── */
+        .page-wrap {
+            max-width: 1200px;
+            margin: 36px auto 60px auto;
+            padding: 0 18px;
+        }
+
+        /* ── Back link ── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 18px;
+            font-weight: 700;
+            color: #274606;
+            text-decoration: none;
+            font-size: .97em;
+        }
+        .back-link:hover { color: #99d930; }
+
+        /* ── Card ── */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 6px 32px rgba(80,120,180,0.09);
+            border: 2px solid #99d930;
+            padding: 24px 28px;
+            margin-bottom: 28px;
+        }
+        .card h2 {
+            margin: 0 0 18px 0;
+            font-size: 1.25em;
+            color: #274606;
+            font-weight: 900;
+        }
+
+        /* ── Summary stats table ── */
+        .regular-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .regular-table th,
+        .regular-table td {
+            border: 1px solid #e8f5c8;
+            padding: 10px 14px;
+            text-align: center;
+        }
+        .regular-table th {
+            background: #99d930;
+            color: #274606;
+            font-weight: 900;
+            font-size: .88em;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        .regular-table tr:nth-child(even) td { background: #f4fce6; }
+        .regular-table tr:hover td { background: #edfae5; }
+
+        /* ── Copy email button ── */
+        .copy-btn {
+            background: #99d930;
+            color: #274606;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .82em;
+            font-weight: 700;
+            font-family: 'Roboto', sans-serif;
+            transition: background .18s;
+        }
+        .copy-btn:hover { background: #85c220; }
+        .copy-btn i { margin-right: 4px; }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #99d930;
+            color: #274606;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all .3s ease;
+            font-weight: 700;
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.error { background: #fff0f0; color: #c00; }
+
+        /* ── DataTables overrides ── */
+        .dt-button {
+            background-color: #99d930 !important;
+            color: #274606 !important;
+            border: 1px solid #85c220 !important;
+            padding: 8px 16px !important;
+            border-radius: 6px !important;
+            font-weight: 700 !important;
+            font-size: .9em !important;
+        }
+        .dt-button:hover {
+            background-color: #85c220 !important;
+            border-color: #85c220 !important;
+        }
+        .dt-buttons { margin-bottom: 10px; }
+
+        @media (max-width: 680px) {
+            .banner-title { font-size: 2em; }
+            .card { padding: 14px 10px; }
+        }
+    </style>
+
+    <script>
+        function copyEmails(emails, source) {
+            if (!emails || emails.trim() === '') {
+                showToast('No emails to copy!', 'error');
+                return;
+            }
+            const textarea = document.createElement('textarea');
+            textarea.value = emails;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Emails copied from ' + source + '!', 'success');
+            } catch (err) {
+                showToast('Failed to copy emails', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast' + (type === 'error' ? ' error' : '');
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        $(document).ready(function () {
+            $('#registration-table').DataTable({
+                pageLength: 25,
+                order: [[1, 'desc']],
+                dom: 'Blfrtip',
+                buttons: [{
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel"></i> Export to Excel',
+                    title: 'Registration Summary - ' + new Date().toLocaleDateString(),
+                    filename: function () { return 'registration_summary_' + new Date().toISOString().slice(0, 10); },
+                    exportOptions: { columns: [0, 1] }
+                }],
+                columnDefs: [{ orderable: false, targets: 2 }]
+            });
+
+            $('#payment-table').DataTable({
+                pageLength: 25,
+                order: [[1, 'desc']],
+                dom: 'Blfrtip',
+                buttons: [{
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel"></i> Export to Excel',
+                    title: 'Payment Summary - ' + new Date().toLocaleDateString(),
+                    filename: function () { return 'payment_summary_' + new Date().toISOString().slice(0, 10); },
+                    exportOptions: { columns: [0, 1] }
+                }],
+                columnDefs: [{ orderable: false, targets: 2 }]
+            });
+
+            $('#unregistered-table').DataTable({
+                pageLength: 25,
+                order: [[0, 'desc']],
+                dom: 'Blfrtip',
+                buttons: [{
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel"></i> Export to Excel',
+                    title: 'Unregistered Users - ' + new Date().toLocaleDateString(),
+                    filename: function () { return 'unregistered_users_' + new Date().toISOString().slice(0, 10); }
+                }]
+            });
+        });
+    </script>
+</head>
+<body>
+
+<?php
+include 'show-navbar.php';
+show_navbar();
+?>
+
+<div class="banner-wrapper">
+    <img src="images/banner_images/Admin/block-pattern.jpg" alt="Admin banner">
+    <h1 class="banner-title">Reports</h1>
+</div>
+
+<div class="page-wrap">
+
+    <a href="administration.php" class="back-link">&#8592; Back to Administration</a>
+
+    <!-- ── Registration Summary ── -->
+    <div class="card">
+        <h2>Registration Summary</h2>
+        <?php if (!empty($registration_by_class)): ?>
+        <table id="registration-table" class="display compact" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Class Name</th>
+                    <th>Count</th>
+                    <th>Copy Emails</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($registration_by_class as $className => $data): ?>
+                <tr>
+                    <td><?= htmlspecialchars($className) ?></td>
+                    <td><?= (int)$data['count'] ?></td>
+                    <td style="text-align:center;">
+                        <button class="copy-btn"
+                                onclick="copyEmails('<?= htmlspecialchars($data['emails'], ENT_QUOTES) ?>',
+                                                    '<?= htmlspecialchars($className, ENT_QUOTES) ?>')">
+                            <i class="fas fa-copy"></i> Copy Emails
+                        </button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+            <p style="text-align:center;color:#888;padding:20px 0;">No class-level registration data found.</p>
+        <?php endif; ?>
+    </div>
+
+    <!-- ── Payment Summary ── -->
+    <div class="card">
+        <h2>Payment Summary</h2>
+        <?php if (!empty($payment_summary)): ?>
+        <table id="payment-table" class="display compact" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Payment Status</th>
+                    <th>Count</th>
+                    <th>Copy Emails</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($payment_summary as $pstatus => $data): ?>
+                <tr>
+                    <td><?= htmlspecialchars(ucfirst($pstatus)) ?></td>
+                    <td><?= (int)$data['count'] ?></td>
+                    <td style="text-align:center;">
+                        <button class="copy-btn"
+                                onclick="copyEmails('<?= htmlspecialchars($data['emails'], ENT_QUOTES) ?>',
+                                                    '<?= htmlspecialchars($pstatus, ENT_QUOTES) ?> payments')">
+                            <i class="fas fa-copy"></i> Copy Emails
+                        </button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+            <p style="text-align:center;color:#888;padding:20px 0;">No payment data found.</p>
+        <?php endif; ?>
+    </div>
+
+    <!-- ── Unregistered Users ── -->
+    <div class="card">
+        <h2>Users Not Registered Yet</h2>
+        <?php if (!empty($unregistered_users)): ?>
+        <table id="unregistered-table" class="display compact" style="width:100%">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <?php
+                    $sample = $unregistered_users[0];
+                    foreach ($sample as $field => $value) {
+                        if ($field !== 'User_Id') {
+                            echo '<th>' . htmlspecialchars(ucwords(str_replace('_', ' ', $field))) . '</th>';
+                        }
+                    }
+                    ?>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($unregistered_users as $user): ?>
+                <tr>
+                    <td><?= htmlspecialchars($user['User_Id']) ?></td>
+                    <?php foreach ($user as $field => $value): ?>
+                        <?php if ($field !== 'User_Id'): ?>
+                            <td><?= htmlspecialchars($value ?? '—') ?></td>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+            <p style="text-align:center;color:#888;padding:20px 0;">All users have registrations, or unable to determine unregistered users.</p>
+        <?php endif; ?>
+    </div>
+
+    <!-- ── Library Information ── -->
+    <div class="card">
+        <h2>Library Information</h2>
+        <table class="regular-table">
+            <tr><th>Statistic</th><th>Total</th></tr>
+            <tr><td>Schools With Libraries</td><td><?= $num_schools ?></td></tr>
+            <tr><td>Student Beneficiaries</td><td><?= $num_beneficiaries ?></td></tr>
+            <tr><td>Books Given To Schools</td><td>N/A</td></tr>
+            <tr><td>Cost / Support Provided</td><td>N/A</td></tr>
+        </table>
+    </div>
+
+    <!-- ── Total Users Registered ── -->
+    <div class="card">
+        <h2>Total Number of Users Registered</h2>
+        <table class="regular-table">
+            <tr><th>Statistic</th><th>Total</th></tr>
+            <tr><td>Users</td><td><?= $num_users ?></td></tr>
+        </table>
+    </div>
+
+    <!-- ── Student Information ── -->
+    <div class="card">
+        <h2>Student Information</h2>
+        <table class="regular-table">
+            <tr><th>Statistic</th><th>Total</th></tr>
+            <tr><td>Class Registrations</td><td><?= $num_registrations ?></td></tr>
+            <tr><td>Earned Certification</td><td>N/A</td></tr>
+            <tr><td>Success Rate</td><td>N/A</td></tr>
+        </table>
+    </div>
+
+</div><!-- /page-wrap -->
+
+<?php include 'footer.php'; ?>
+</body>
 </html>
