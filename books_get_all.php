@@ -1,69 +1,71 @@
 <?php
-  $status = session_status();
-  if ($status == PHP_SESSION_NONE) {
+$status = session_status();
+if ($status == PHP_SESSION_NONE) {
     session_start();
-  }
-/*
-  // Block unauthorized users from accessing the page
-  if (isset($_SESSION['role'])) {
-    if ($_SESSION['role'] != 'admin') {
-      http_response_code(403);
-      die('Forbidden');
-    }
-  } else {
-    http_response_code(403);
-    die('Forbidden');
-  }
- */
-  require 'db_configuration.php';
-  // Create connection
-  $conn = new mysqli(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_DATABASE);
-  // Check connection
-  if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-  }
+}
 
-  $sql = "SELECT * FROM books ORDER BY id;";
-  $result = $conn->query($sql);
-  $resultString = "";
-  if ($result->num_rows > 0) {
-    // Create table with data from each row
-    while($row = $result->fetch_assoc()) {
-      $Status = $row["available"]=='0'?'Not Available':'Available';
-		$resultString .= "<tr>
-               <td>" . $row["grade_level"] . "</td>
-               <td id='book_image'><img src='" . $row["image"] . "' onerror=\"src='images/books/default.png'\" loading='lazy'></td>
-               <td>" . $row["title"]. "</td>
-               <td>" . $row["author"]. "</td>
-               <td>" . $row["publisher"]. "</td>
-               <td>" . $row["publishYear"]. "</td>
-			   <td>" . $row["numPages"]. "</td>";
-      			if (isset($_SESSION['role']) AND $_SESSION['role'] == 'admin') { 
-			    $resultString .= "<td>" . $row["price"]. "</td>";
-				}
-			   $resultString .= "<td>" . $Status. "</td>";
+require 'db_configuration.php'; // provides $db (mysqli)
 
-      		if (isset($_SESSION['role']) AND $_SESSION['role'] == 'admin') 
-      		{
+$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 
-               $resultString .= "<td style='min-width: 120px;'>
-                 <form action='book_edit.php' method='post' enctype='multipart/form-data'>
-                    <input type='hidden' name='book_image' value='".$row["image"]. "'>
-                   	<input type='hidden' name='book_id' value='".$row['id']."'>
-                	<input type='submit' id='admin_buttons' name='edit_book' value='Edit Book'>
-				</form>
-				<form action='book_delete.php' method='POST'>
-                    <input type='hidden' name='book_image' value='".$row["image"]."'>
-                    <input type='hidden' name='book_id' value='".$row["id"]."'>
-                    <input type='submit' id='admin_buttons' name='delete_book' value='Delete Book'/>
+// Select only the columns we actually render — avoids pulling unused data
+$sql = "SELECT id, grade_level, image, title, author, publisher, publishYear, numPages, available"
+     . ($isAdmin ? ", price" : "")
+     . " FROM books ORDER BY id ASC";
+
+$result = $db->query($sql);
+
+$rows = '';
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $id         = intval($row['id']);
+        $gradeLevel = htmlspecialchars($row['grade_level']  ?? '', ENT_QUOTES);
+        $image      = htmlspecialchars($row['image']        ?? '', ENT_QUOTES);
+        $title      = htmlspecialchars($row['title']        ?? '', ENT_QUOTES);
+        $author     = htmlspecialchars($row['author']       ?? '', ENT_QUOTES);
+        $publisher  = htmlspecialchars($row['publisher']    ?? '', ENT_QUOTES);
+        $year       = htmlspecialchars($row['publishYear']  ?? '', ENT_QUOTES);
+        $pages      = htmlspecialchars($row['numPages']     ?? '', ENT_QUOTES);
+        $status     = $row['available'] == '0' ? 'Not Available' : 'Available';
+
+        $rows .= "<tr>";
+        $rows .= "<td>{$gradeLevel}</td>";
+        $rows .= "<td><img src='{$image}' onerror=\"this.src='images/books/default.png'\" loading='lazy' style='max-height:60px;'></td>";
+        $rows .= "<td>{$title}</td>";
+        $rows .= "<td>{$author}</td>";
+        $rows .= "<td>{$publisher}</td>";
+        $rows .= "<td>{$year}</td>";
+        $rows .= "<td>{$pages}</td>";
+
+        if ($isAdmin) {
+            $price  = htmlspecialchars($row['price'] ?? '', ENT_QUOTES);
+            $imgVal = htmlspecialchars($row['image'] ?? '', ENT_QUOTES);
+            $rows .= "<td>{$price}</td>";
+            $rows .= "<td>{$status}</td>";
+            $rows .= "<td style='white-space:nowrap;'>
+                <a href='book_edit.php?book_id={$id}&book_image={$imgVal}'
+                   style='display:inline-block;padding:5px 10px;background:#f0fad8;color:#274606;border:1.5px solid #99d930;border-radius:6px;font-weight:700;font-size:.82em;text-decoration:none;margin-bottom:4px;'>
+                   ✏️ Edit
+                </a>
+                <form action='book_delete.php' method='POST' style='display:inline;'
+                      onsubmit=\"return confirm('Delete this book? This cannot be undone.');\">
+                    <input type='hidden' name='book_image' value='{$imgVal}'>
+                    <input type='hidden' name='book_id'    value='{$id}'>
+                    <button type='submit' name='delete_book'
+                            style='padding:5px 10px;background:#fff0f0;color:#c00;border:1.5px solid #f99;border-radius:6px;font-weight:700;font-size:.82em;cursor:pointer;'>
+                        🗑 Delete
+                    </button>
                 </form>
-				</td>";
-			}
-	        $resultString .= "</tr>";
-      }
-  	}
+            </td>";
+        } else {
+            $rows .= "<td>{$status}</td>";
+        }
 
-  echo json_encode(["data" => $resultString]);
+        $rows .= "</tr>";
+    }
+    $result->free();
+}
 
-  $conn->close();
-  ?>
+header('Content-Type: application/json');
+echo json_encode(['data' => $rows]);

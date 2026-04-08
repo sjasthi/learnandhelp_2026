@@ -228,60 +228,8 @@ if ($status == PHP_SESSION_NONE) {
     </style>
 
     <script>
-        $(document).ready(function () {
-            // Clone header for per-column search
-            $('#books_table thead tr').clone(true).appendTo('#books_table thead');
-            $('#books_table thead tr:eq(1) th').each(function () {
-                var title = $(this).text();
-                $(this).html('<input type="text" placeholder="Search ' + title + '" />');
-            });
-
-            // Load books via AJAX
-            $.ajax({
-                url: 'books_get_all.php',
-                type: 'GET',
-                async: false,
-                success: function (data) {
-                    var bookList = JSON.parse(data);
-                    $('#book_body').append(bookList.data);
-                    $('#books_page').removeAttr('hidden');
-                    $('#loading').attr('hidden', 'true');
-                }
-            });
-
-            var table = $('#books_table').DataTable({
-                initComplete: function () {
-                    this.api().columns().every(function () {
-                        var that = this;
-                        $('input', this.header()).on('keyup change clear', function () {
-                            if (that.search() !== this.value) {
-                                that.search(this.value).draw();
-                            }
-                        });
-                    });
-                }
-            });
-
-            $('a.toggle-vis').on('click', function (e) {
-                e.preventDefault();
-                var column = table.column($(this).attr('data-column'));
-                column.visible(!column.visible());
-            });
-
-            // Grade level checkboxes — remove required if any checked
-            var checkboxes = $('.grade-checkbox');
-            checkboxes.on('change', function () {
-                if ($('.grade-checkbox:checked').length > 0) {
-                    checkboxes.removeAttr('required');
-                } else {
-                    checkboxes.attr('required', 'required');
-                }
-            });
-        });
-
-        // Slideshow
+        // ── Slideshow (defined globally so onclick handlers work) ──
         var slideIndex = 1;
-        showSlides(slideIndex);
         function plusSlides(n)   { showSlides(slideIndex += n); }
         function currentSlide(n) { showSlides(slideIndex = n); }
         function showSlides(n) {
@@ -295,6 +243,71 @@ if ($status == PHP_SESSION_NONE) {
             slides[slideIndex - 1].style.display = 'block';
             if (dots[slideIndex - 1]) dots[slideIndex - 1].classList.add('active');
         }
+
+        $(document).ready(function () {
+            // Start slideshow once DOM is ready
+            showSlides(slideIndex);
+
+            // ── Grade level checkboxes ────────────────────────
+            var checkboxes = $('.grade-checkbox');
+            checkboxes.on('change', function () {
+                if ($('.grade-checkbox:checked').length > 0) {
+                    checkboxes.removeAttr('required');
+                } else {
+                    checkboxes.attr('required', 'required');
+                }
+            });
+
+            // ── Load books asynchronously (non-blocking) ──────
+            // Previously used async:false which froze the browser until
+            // books_get_all.php finished — now truly async with spinner.
+            $.ajax({
+                url: 'books_get_all.php',
+                type: 'GET',
+                success: function (data) {
+                    var bookList = JSON.parse(data);
+
+                    // Insert rows first, THEN clone header & init DataTable
+                    $('#book_body').append(bookList.data);
+
+                    // Clone header row for per-column search inputs
+                    $('#books_table thead tr').clone(true).appendTo('#books_table thead');
+                    $('#books_table thead tr:eq(1) th').each(function () {
+                        var title = $(this).text();
+                        $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+                    });
+
+                    // Hide spinner and reveal table
+                    $('#loading').attr('hidden', 'true');
+                    $('#books_page').removeAttr('hidden');
+
+                    // Init DataTable only after rows are in the DOM
+                    var table = $('#books_table').DataTable({
+                        initComplete: function () {
+                            this.api().columns().every(function () {
+                                var that = this;
+                                $('input', this.header()).on('keyup change clear', function () {
+                                    if (that.search() !== this.value) {
+                                        that.search(this.value).draw();
+                                    }
+                                });
+                            });
+                        }
+                    });
+
+                    $('a.toggle-vis').on('click', function (e) {
+                        e.preventDefault();
+                        var column = table.column($(this).attr('data-column'));
+                        column.visible(!column.visible());
+                    });
+                },
+                error: function () {
+                    $('#loading').html(
+                        '<p style="color:#c00;font-weight:700;padding:20px;">Failed to load books. Please refresh the page.</p>'
+                    );
+                }
+            });
+        });
     </script>
 </head>
 <body>
