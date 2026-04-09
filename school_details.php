@@ -16,7 +16,7 @@
 		}
 	}
 
-  $School_Id = $_GET['id']
+  $School_Id = (int)($_GET['id'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html>
@@ -24,7 +24,7 @@
     <link rel="icon" href="images/icon_logo.png" type="image/icon type">
     <title>Learn and Help</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;900&display=swap" rel="stylesheet">
-    <link href="css/main.css" rel="stylesheet">
+    <link href="css/main.css?v=2025-08-22a" rel="stylesheet">
   </head>
   <body>
     <?php include 'show-navbar.php';
@@ -42,8 +42,11 @@
   if ($connection === false) {
     die("Failed to connect to database: " . mysqli_connect_error());
   }
-  $sql = "SELECT * FROM schools WHERE id = '$School_Id'";
-  $row = mysqli_fetch_array(mysqli_query($connection, $sql));
+  $stmt = $connection->prepare("SELECT * FROM schools WHERE id = ?");
+  $stmt->bind_param("i", $School_Id);
+  $stmt->execute();
+  $row = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
 
   $school_name = $row['name'];
   $school_type = $row['type'];

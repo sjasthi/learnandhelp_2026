@@ -134,7 +134,7 @@ $result = $db->query($sql);
 </div>
 
 <h1 class="page-title">Enroll</h1>
-<h2> Classes start on 6th Sept;<br> Late registration till 21st Sept;<br> Registration will be closed on 22nd Sept.</h2></h1>
+<h2> Classes start on 6th Sept;<br> Late registration till 21st Sept;<br> Registration will be closed on 22nd Sept.</h2>
 
 
 <div class="classes-grid">

@@ -265,7 +265,7 @@ if ($status == PHP_SESSION_NONE) {
                 url: 'books_get_all.php',
                 type: 'GET',
                 success: function (data) {
-                    var bookList = JSON.parse(data);
+                    var bookList = (typeof data === 'string') ? JSON.parse(data) : data;
 
                     // Insert rows first, THEN clone header & init DataTable
                     $('#book_body').append(bookList.data);

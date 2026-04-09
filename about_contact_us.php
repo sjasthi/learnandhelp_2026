@@ -19,8 +19,8 @@ require_once __DIR__ . '/db_configuration.php'; // provides $db (mysqli)
 if (file_exists(__DIR__ . '/email_config.php')) {
     require __DIR__ . '/email_config.php';
 }
-$smtp_user     = defined('SMTP_USER')     ? SMTP_USER     : '';
-$smtp_password = defined('SMTP_PASSWORD') ? SMTP_PASSWORD : '';
+$smtp_user     = defined('SMTP_USER')     ? constant('SMTP_USER')     : '';
+$smtp_password = defined('SMTP_PASSWORD') ? constant('SMTP_PASSWORD') : '';
 
 $message_sent  = false;
 $message_error = '';
@@ -250,12 +250,6 @@ if (isset($_POST['submit'])) {
 </div>
 
 <div class="page-wrap">
-
-    <!-- Temporary notice -->
-    <div class="notice-banner">
-        ⚠️ This form is not fully functional yet. Please send your message directly to
-        <a href="mailto:Siva.Jasthi@gmail.com" style="color:#856404;">Siva.Jasthi@gmail.com</a>. Thank you.
-    </div>
 
     <?php if ($message_sent): ?>
         <div class="flash success">✅ Your message was sent successfully! We'll get back to you soon.</div>
