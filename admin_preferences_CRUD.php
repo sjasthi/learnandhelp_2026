@@ -90,7 +90,7 @@ $preferences = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
     <link rel="icon" href="images/icon_logo.png" type="image/icon type">
     <title>Preferences – Administration</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <link href="css/main.css" rel="stylesheet">
+    <link href="css/main.css?v=2025-08-22a" rel="stylesheet">
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -437,7 +437,7 @@ show_navbar();
                 ?>
                 <tr>
                     <td><strong><?= $pname ?></strong></td>
-                    <td><?= $pvalue ?></td>
+                    <td style="max-width:420px;word-break:break-all;overflow-wrap:break-word;"><?= $pvalue ?></td>
                     <td style="white-space:nowrap;">
                         <a href="admin_preferences_CRUD.php?action=edit&preference_name=<?= $pnameUrl ?>"
                            class="btn btn-edit">✏️ Edit</a>

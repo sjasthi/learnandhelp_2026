@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header('Location: login.php');
+    exit;
+}
 // Check if form is submitted
 if(isset($_POST['submit'])) {
     // Check if all required fields are filled

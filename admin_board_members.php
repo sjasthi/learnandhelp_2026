@@ -487,7 +487,7 @@ show_navbar();
                     </td>
                     <td><strong><?= htmlspecialchars($m['name']) ?></strong></td>
                     <td><?= htmlspecialchars($m['role'] ?? '') ?></td>
-                    <td>
+                    <td style="max-width:160px;word-break:break-word;overflow-wrap:break-word;">
                         <?php if (!empty($m['email'])): ?>
                             <a href="mailto:<?= htmlspecialchars($m['email']) ?>"
                                style="color:#4a8500;">

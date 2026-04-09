@@ -785,8 +785,8 @@ $log_colours = [
                             <td style="white-space:nowrap;"><?= $a['purchase_date'] ? date('M j, Y', strtotime($a['purchase_date'])) : '<span style="color:#bbb;">—</span>' ?></td>
                             <td style="white-space:nowrap;font-weight:700;"><?= $a['purchase_price'] !== null ? '$' . number_format($a['purchase_price'], 2) : '<span style="color:#bbb;">—</span>' ?></td>
                             <td><span class="badge" style="background:<?= $cc['bg'] ?>;color:<?= $cc['color'] ?>;"><?= htmlspecialchars($a['condition_status']) ?></span></td>
-                            <td><?= $a['location']    ? htmlspecialchars($a['location'])    : '<span style="color:#bbb;">—</span>' ?></td>
-                            <td><?= $a['assigned_to'] ? htmlspecialchars($a['assigned_to']) : '<span style="color:#bbb;">—</span>' ?></td>
+                            <td style="max-width:140px;word-break:break-word;overflow-wrap:break-word;"><?= $a['location']    ? htmlspecialchars($a['location'])    : '<span style="color:#bbb;">—</span>' ?></td>
+                            <td style="max-width:120px;word-break:break-word;overflow-wrap:break-word;"><?= $a['assigned_to'] ? htmlspecialchars($a['assigned_to']) : '<span style="color:#bbb;">—</span>' ?></td>
                             <td><?= $w_html ?></td>
                             <td><span class="badge" style="background:<?= $sc['bg'] ?>;color:<?= $sc['color'] ?>;"><?= htmlspecialchars($a['status']) ?></span></td>
                             <td class="actions">
@@ -833,7 +833,7 @@ $log_colours = [
                     <td><span class="badge" style="background:<?= $lc['bg'] ?>;color:<?= $lc['color'] ?>;"><?= htmlspecialchars($log['action']) ?></span></td>
                     <td><strong><?= htmlspecialchars($log['asset_name']) ?></strong></td>
                     <td><?= htmlspecialchars($log['changed_by'] ?? '—') ?></td>
-                    <td style="color:#666;font-size:.88em;"><?= htmlspecialchars($log['details'] ?? '—') ?></td>
+                    <td style="color:#666;font-size:.88em;max-width:220px;word-break:break-word;overflow-wrap:break-word;"><?= htmlspecialchars($log['details'] ?? '—') ?></td>
                 </tr>
                 <?php endforeach; ?>
                 </tbody>

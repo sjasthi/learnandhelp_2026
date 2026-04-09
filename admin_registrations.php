@@ -307,11 +307,11 @@ if (isset($_SESSION['role'])) {
                   </form>
                 </td>
                 <td>" . $row["Reg_Id"] . "</td>
-                <td>" . $row["Sponsor1_Name"] . "</td>
-                <td>" . $row["Sponsor1_Email"] . "</td>
-                <td>" . $row["Sponsor1_Phone_Number"] . "</td>
-                <td>" . $row["Student_Name"] . "</td>
-                <td>" . $row["Student_Email"] . "</td>
+                <td style='max-width:140px;word-break:break-word;'>" . htmlspecialchars($row["Sponsor1_Name"]) . "</td>
+                <td style='max-width:160px;word-break:break-word;'>" . htmlspecialchars($row["Sponsor1_Email"]) . "</td>
+                <td>" . htmlspecialchars($row["Sponsor1_Phone_Number"]) . "</td>
+                <td style='max-width:140px;word-break:break-word;'>" . htmlspecialchars($row["Student_Name"]) . "</td>
+                <td style='max-width:160px;word-break:break-word;'>" . htmlspecialchars($row["Student_Email"]) . "</td>
                 <td>" . $row["Student_Phone_Number"] . "</td>
                 <td>" . $row["Class_Name"] . "</td>
                 <td class='editable'>" . ($row["current_grade"] ?? '') . "</td>
