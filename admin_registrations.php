@@ -299,97 +299,91 @@ $registrations = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
     </script>
 </head>
 <body>
-<?php include 'show-navbar.php'; ?>
-<?php show_navbar(); ?>
-<header class="inverse">
-    <div class="container">
-        <h1><span class="accent-text">Registrations</span></h1>
-    </div>
-</header>
-<!-- Jquery Data Table -->
-<!--<div class="toggle_columns">-->
-<!--    Toggle column:-->
-<!--    <a class="toggle-vis" data-column="0">Reg_Id</a> --->
-<!--    <a class="toggle-vis" data-column="1">Sponsor1 Name</a> --->
-<!--    <a class="toggle-vis" data-column="2">Sponsor1 Email</a> --->
-<!--    <a class="toggle-vis" data-column="3">Sponsor1 Phone Number</a> --->
-<!--    <a class="toggle-vis" data-column="4">Sponsor2 Name</a> --->
-<!--    <a class="toggle-vis" data-column="5">Sponsor2 Email</a> --->
-<!--    <a class="toggle-vis" data-column="6">Sponsor2 Phone Number</a> --->
-<!--    <a class="toggle-vis" data-column="7">Student Name</a> --->
-<!--    <a class="toggle-vis" data-column="8">Student Email</a> --->
-<!--    <a class="toggle-vis" data-column="9">Student Phone Number</a> --->
-<!--    <a class="toggle-vis" data-column="10">Class</a> --->
-<!--    <a class="toggle-vis" data-column="11">Date Modified</a> --->
-<!--    <a class="toggle-vis" data-column="12">Date Created</a> --->
-<!--    <a class="toggle-vis" data-column="13">Payment ID</a> --->
-<!--</div>-->
-<div style="padding-top: 10px; padding-bottom: 30px; width:90%; margin:auto; overflow:auto">
-    <table id="registration_table" class="display compact">
-        <thead>
-        <tr>
-            <th>Options</th>
-            <th>Reg Id</th>
-            <th>Sponsor1 Name</th>
-            <th>Sponsor1 Email</th>
-            <th>Sponsor1 Phone Number</th>
-            <th>Student Name</th>
-            <th>Student Email</th>
-            <th>Student Phone Number</th>
-            <th>Class</th>
-            <th>Current Grade</th>
-            <th>Payment Status</th>
-            <th>Payment Amount</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Populating table with data from the database-->
-        <?php
-        require 'db_configuration.php';
-        // Create connection
-        $conn = new mysqli(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_DATABASE);
-        // Check connection
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
 
-        $sql = "SELECT * FROM registrations Natural Join classes order by Reg_Id DESC";
-        $result = $conn->query($sql);
+<?php
+include 'show-navbar.php';
+show_navbar();
+?>
 
-        if ($result->num_rows > 0) {
-            // Create table with data from each row
-            while ($row = $result->fetch_assoc()) {
-                echo "<tr>
-                <td>
-                  <form action='admin_registrations_edit.php' method='POST'>
-                    <input type='hidden' name='Reg_Id' value='" . $row["Reg_Id"] . "'>
-                    <input type='submit' id='admin_buttons' name='edit' value='Edit'/>
-                  </form>
-                  <form action='admin_registrations_delete.php' method='POST'>
-                    <input type='hidden' name='Reg_Id' value='" . $row["Reg_Id"] . "'>
-                    <input type='submit' id='admin_buttons' name='delete' value='Delete'/>
-                  </form>
-                </td>
-                <td>" . $row["Reg_Id"] . "</td>
-                <td>" . $row["Sponsor1_Name"] . "</td>
-                <td>" . $row["Sponsor1_Email"] . "</td>
-                <td>" . $row["Sponsor1_Phone_Number"] . "</td>
-                <td>" . $row["Student_Name"] . "</td>
-                <td>" . $row["Student_Email"] . "</td>
-                <td>" . $row["Student_Phone_Number"] . "</td>
-                <td>" . $row["Class_Name"] . "</td>
-                <td class='editable'>" . ($row["current_grade"] ?? '') . "</td>
-                <td class='editable'>" . $row["payment_status"] . "</td>
-                <td class='editable'>" . $row["payment_amount"] . "</td>
-                </tr>";
-            }
-        } else {
-            echo "0 results";
-        }
-        $conn->close();
-        ?>
-        </tbody>
-    </table>
+<div class="banner-wrapper">
+    <img src="images/banner_images/Admin/block-pattern.jpg" alt="Admin banner">
+    <h1 class="banner-title">Registrations</h1>
 </div>
+
+<div class="page-wrap">
+
+    <a href="administration.php" class="back-link">&#8592; Back to Administration</a>
+
+    <div class="card">
+        <table id="registration_table" class="display compact" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Options</th>
+                    <th>Reg ID</th>
+                    <th>Sponsor1 Name</th>
+                    <th>Sponsor1 Email</th>
+                    <th>Sponsor1 Phone</th>
+                    <th>Student Name</th>
+                    <th>Student Email</th>
+                    <th>Student Phone</th>
+                    <th>Class</th>
+                    <th>Current Grade</th>
+                    <th>Payment Status</th>
+                    <th>Payment Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if (!empty($registrations)): ?>
+                <?php foreach ($registrations as $row):
+                    $regId    = intval($row['Reg_Id']);
+                    $sp1Name  = htmlspecialchars($row['Sponsor1_Name']         ?? '', ENT_QUOTES);
+                    $sp1Email = htmlspecialchars($row['Sponsor1_Email']        ?? '', ENT_QUOTES);
+                    $sp1Phone = htmlspecialchars($row['Sponsor1_Phone_Number'] ?? '', ENT_QUOTES);
+                    $stName   = htmlspecialchars($row['Student_Name']          ?? '', ENT_QUOTES);
+                    $stEmail  = htmlspecialchars($row['Student_Email']         ?? '', ENT_QUOTES);
+                    $stPhone  = htmlspecialchars($row['Student_Phone_Number']  ?? '', ENT_QUOTES);
+                    $class    = htmlspecialchars($row['Class_Name']            ?? '', ENT_QUOTES);
+                    $grade    = htmlspecialchars($row['current_grade']         ?? '', ENT_QUOTES);
+                    $payStatus= htmlspecialchars($row['payment_status']        ?? '', ENT_QUOTES);
+                    $payAmt   = htmlspecialchars($row['payment_amount']        ?? '', ENT_QUOTES);
+                ?>
+                <tr>
+                    <td style="white-space:nowrap;">
+                        <a href="admin_registrations_edit.php?Reg_Id=<?= $regId ?>"
+                           class="btn btn-edit">✏️ Edit</a>
+                        <form action="admin_registrations_delete.php" method="POST"
+                              style="display:inline;"
+                              onsubmit="return confirm('Delete registration #<?= $regId ?>? This cannot be undone.');">
+                            <input type="hidden" name="Reg_Id" value="<?= $regId ?>">
+                            <button type="submit" name="delete" class="btn btn-danger">🗑 Delete</button>
+                        </form>
+                    </td>
+                    <td><?= $regId ?></td>
+                    <td><?= $sp1Name ?></td>
+                    <td><?= $sp1Email ?></td>
+                    <td><?= $sp1Phone ?></td>
+                    <td><?= $stName ?></td>
+                    <td><?= $stEmail ?></td>
+                    <td><?= $stPhone ?></td>
+                    <td><?= $class ?></td>
+                    <td class="editable"><?= $grade ?></td>
+                    <td class="editable"><?= $payStatus ?></td>
+                    <td class="editable"><?= $payAmt ?></td>
+                </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="12" style="text-align:center;color:#888;padding:30px;">
+                        No registrations found.
+                    </td>
+                </tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div><!-- /card -->
+
+</div><!-- /page-wrap -->
+
+<?php include 'footer.php'; ?>
 </body>
 </html>
