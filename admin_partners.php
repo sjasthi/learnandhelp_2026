@@ -87,6 +87,15 @@ require 'db_configuration.php'; // provides $db (mysqli)
         }
         .back-link:hover { color: #99d930; }
 
+        /* ── Overflow-safe cells ── */
+        .table-wrap { overflow-x: auto; }
+        .cell-wrap {
+            max-width: 180px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
         /* ── Card ── */
         .card {
             background: #fff;
@@ -261,6 +270,7 @@ show_navbar();
         </div>
 
         <!-- Partners Table -->
+        <div class="table-wrap">
         <table id="PartnersTable" class="display compact" style="width:100%">
             <thead>
                 <tr>
@@ -314,7 +324,7 @@ show_navbar();
                         <img class="thumb" src="<?= htmlspecialchars($logoSrc) ?>"
                              alt="<?= $name ?> logo">
                     </td>
-                    <td>
+                    <td class="cell-wrap">
                         <?php if ($website): ?>
                             <a href="<?= $website ?>" target="_blank" rel="noopener noreferrer">
                                 <?= $website ?>
@@ -323,7 +333,7 @@ show_navbar();
                             <span style="color:#bbb;">—</span>
                         <?php endif; ?>
                     </td>
-                    <td><?= $impact ?: '<span style="color:#bbb;">—</span>' ?></td>
+                    <td class="cell-wrap"><?= $impact ?: '<span style="color:#bbb;">—</span>' ?></td>
                     <td style="white-space:nowrap;"><?= $created ?></td>
                     <td style="white-space:nowrap;"><?= $updated ?></td>
                     <td style="white-space:nowrap;">
@@ -345,6 +355,7 @@ show_navbar();
             <?php endif; ?>
             </tbody>
         </table>
+        </div><!-- /table-wrap -->
 
     </div><!-- /card -->
 

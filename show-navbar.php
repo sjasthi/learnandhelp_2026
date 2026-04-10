@@ -50,6 +50,7 @@ function show_navbar() {
             <a href="suggest_school.php">Nominate a School</a>
             <a href="recommend_non_profit.php">Recommend a Non-Profit</a>
             <a href="chat.php">Schools Chat Bot</a>
+            <a href="documentation.php">User Guide</a>
           </div>
         </div>';
 

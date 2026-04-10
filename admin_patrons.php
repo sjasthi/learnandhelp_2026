@@ -488,7 +488,7 @@ show_navbar();
                                 <span style="color:#bbb;">—</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td style="max-width:200px;word-break:break-word;overflow-wrap:break-word;">
                             <?= !empty($p['event_info'])
                                 ? htmlspecialchars($p['event_info'])
                                 : '<span style="color:#bbb;">—</span>' ?>

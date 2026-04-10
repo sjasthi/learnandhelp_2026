@@ -66,12 +66,6 @@ include 'show-navbar.php';
         </ul>
     </div>
 
-    <div class="section">
-        <h2>Students</h2>
-        <ul class="academics-links">
-            <li><a href="students.php">Student Resources</a></li>
-        </ul>
-    </div>
 </div>
 
 <?php include 'footer.php'; ?>

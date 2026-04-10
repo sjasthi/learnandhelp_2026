@@ -271,6 +271,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             white-space: nowrap;
         }
 
+        /* ── Overflow-safe cells ── */
+        .cell-wrap {
+            max-width: 160px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
         /* ── DataTables overrides ── */
         .dt-button {
             background-color: #99d930 !important;
@@ -525,14 +533,14 @@ show_navbar();
                     </td>
                     <td class="org-id"><?= $orgId ?></td>
                     <td><?= htmlspecialchars($row['suggester_id'] ?? '', ENT_QUOTES) ?></td>
-                    <td class="editable" data-field="org_name"><?= htmlspecialchars($row['org_name'] ?? '', ENT_QUOTES) ?></td>
-                    <td class="editable" data-field="cause_category"><?= htmlspecialchars($row['cause_category'] ?? '', ENT_QUOTES) ?></td>
+                    <td class="editable cell-wrap" data-field="org_name"><?= htmlspecialchars($row['org_name'] ?? '', ENT_QUOTES) ?></td>
+                    <td class="editable cell-wrap" data-field="cause_category"><?= htmlspecialchars($row['cause_category'] ?? '', ENT_QUOTES) ?></td>
                     <td class="editable description-cell" data-field="description" data-type="textarea"
                         title="<?= $description ?>"><?= $shortDescription ?></td>
-                    <td class="editable" data-field="website_url"><?= $website ?></td>
-                    <td class="editable" data-field="org_email"><?= htmlspecialchars($row['org_email'] ?? '', ENT_QUOTES) ?></td>
+                    <td class="editable cell-wrap" data-field="website_url"><?= $website ?></td>
+                    <td class="editable cell-wrap" data-field="org_email"><?= htmlspecialchars($row['org_email'] ?? '', ENT_QUOTES) ?></td>
                     <td class="editable" data-field="status" data-type="select"><?= $statusBadge ?></td>
-                    <td class="editable" data-field="address" data-type="textarea"><?= htmlspecialchars($row['address'] ?? '', ENT_QUOTES) ?></td>
+                    <td class="editable cell-wrap" data-field="address" data-type="textarea"><?= htmlspecialchars($row['address'] ?? '', ENT_QUOTES) ?></td>
                     <td style="white-space:nowrap;"><?= htmlspecialchars($row['created_at'] ?? '', ENT_QUOTES) ?></td>
                     <td style="white-space:nowrap;"><?= htmlspecialchars($row['updated_at'] ?? '', ENT_QUOTES) ?></td>
                     <td class="editable description-cell" data-field="notes" data-type="textarea"
