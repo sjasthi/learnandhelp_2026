@@ -1,5 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+$status = session_status();
+if ($status == PHP_SESSION_NONE) {
     session_start();
 }
 
@@ -11,52 +12,61 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 
 require 'db_configuration.php'; // provides $db (mysqli)
 
-// ── Validate id ───────────────────────────────────────────────
-$id = (isset($_GET['id']) && ctype_digit($_GET['id'])) ? intval($_GET['id']) : 0;
-if (!$id) {
-    header('Location: admin_review_suggestions.php');
-    exit();
-}
-
 $message     = '';
 $messageType = '';
 
 // ── Handle POST ───────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name                 = trim($_POST['name']                 ?? '');
-    $contact_name         = trim($_POST['contact_name']         ?? '');
-    $contact_phone        = trim($_POST['contact_phone']        ?? '');
-    $commitment_statement = trim($_POST['commitment_statement'] ?? '');
+    $title       = trim($_POST['Title']       ?? '');
+    $author      = trim($_POST['Author']      ?? '');
+    $description = trim($_POST['Description'] ?? '');
+    $video_link  = trim($_POST['Video_Link']  ?? '');
 
-    if (empty($name)) {
-        $message     = 'School name is required.';
+    if (empty($title)) {
+        $message     = 'Title is required.';
+        $messageType = 'error';
+    } elseif (empty($author)) {
+        $message     = 'Author is required.';
         $messageType = 'error';
     } else {
-        $stmt = $db->prepare("UPDATE schools SET name=?, contact_name=?, contact_phone=?, commitment_statement=? WHERE id=? AND status='Proposed'");
-        $stmt->bind_param('ssssi', $name, $contact_name, $contact_phone, $commitment_statement, $id);
+        $stmt = $db->prepare("INSERT INTO blogs (Title, Author, Description, Video_Link, Created_Time, Modified_Time) VALUES (?, ?, ?, ?, NOW(), NOW())");
+        $stmt->bind_param("ssss", $title, $author, $description, $video_link);
 
         if ($stmt->execute()) {
+            $new_id = $stmt->insert_id;
             $stmt->close();
-            header('Location: admin_review_suggestions.php');
+
+            // Handle picture uploads if any
+            if (!empty($_FILES['Location']['name'][0])) {
+                $upload_dir = "blog_images/";
+                if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+
+                foreach ($_FILES['Location']['tmp_name'] as $i => $tmp) {
+                    if ($_FILES['Location']['error'][$i] !== UPLOAD_ERR_OK) continue;
+                    $ext      = strtolower(pathinfo($_FILES['Location']['name'][$i], PATHINFO_EXTENSION));
+                    $allowed  = ['jpg','jpeg','png','gif','webp'];
+                    if (!in_array($ext, $allowed)) continue;
+                    $filename = uniqid("blog_{$new_id}_", true) . '.' . $ext;
+                    $dest     = $upload_dir . $filename;
+                    if (move_uploaded_file($tmp, $dest)) {
+                        $pic_stmt = $db->prepare("INSERT INTO blog_pictures (Blog_Id, Location) VALUES (?, ?)");
+                        $pic_stmt->bind_param("is", $new_id, $dest);
+                        $pic_stmt->execute();
+                        $pic_stmt->close();
+                    }
+                }
+            }
+
+            $_SESSION['flash_message'] = "Blog \"{$title}\" created successfully!";
+            $_SESSION['flash_type']    = 'success';
+            header('Location: admin_blogs.php');
             exit();
         } else {
-            $message     = 'Error saving changes. Please try again.';
+            $message     = 'Error creating blog. Please try again.';
             $messageType = 'error';
             $stmt->close();
         }
     }
-}
-
-// ── Load current values ───────────────────────────────────────
-$stmt = $db->prepare("SELECT name, contact_name, contact_phone, commitment_statement FROM schools WHERE id=? AND status='Proposed' LIMIT 1");
-$stmt->bind_param('i', $id);
-$stmt->execute();
-$row = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-if (!$row) {
-    header('Location: admin_review_suggestions.php');
-    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -65,16 +75,15 @@ if (!$row) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="images/icon_logo.png" type="image/icon type">
-    <title>Update Suggestion – Administration</title>
+    <title>Create Blog – Administration</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <link href="css/main.css?v=2025-08-22a" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
 
     <style>
         body {
-            margin: 0;
-            font-family: 'Roboto', sans-serif;
             background: #f8f8f8;
-            color: #252525;
+            margin: 0;
+            font-family: 'Roboto', Arial, sans-serif;
         }
 
         /* ── Banner ── */
@@ -109,8 +118,8 @@ if (!$row) {
 
         /* ── Page wrapper ── */
         .page-wrap {
-            max-width: 780px;
-            margin: 40px auto 60px auto;
+            max-width: 800px;
+            margin: 36px auto 60px auto;
             padding: 0 18px;
         }
 
@@ -144,7 +153,8 @@ if (!$row) {
             border-radius: 16px;
             box-shadow: 0 6px 32px rgba(80,120,180,0.09);
             border: 2px solid #99d930;
-            padding: 32px 36px;
+            padding: 30px 32px;
+            margin-bottom: 28px;
         }
         .card h2 {
             margin: 0 0 22px 0;
@@ -167,7 +177,8 @@ if (!$row) {
             text-transform: uppercase;
             letter-spacing: .5px;
         }
-        .form-group input,
+        .form-group input[type="text"],
+        .form-group input[type="url"],
         .form-group textarea {
             padding: 10px 13px;
             border: 1.5px solid #cde8a0;
@@ -186,21 +197,34 @@ if (!$row) {
             border-color: #99d930;
             box-shadow: 0 0 0 3px rgba(153,217,48,.15);
         }
-        .form-group textarea { resize: vertical; min-height: 130px; }
+        .form-group textarea { resize: vertical; min-height: 160px; }
+        .form-group input[type="file"] {
+            padding: 10px;
+            border: 2px dashed #cde8a0;
+            border-radius: 8px;
+            background: #f8fbe9;
+            font-family: 'Roboto', sans-serif;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .form-group small {
+            font-size: .8em;
+            color: #888;
+            margin-top: 3px;
+        }
 
         /* ── Buttons ── */
         .btn-row {
             display: flex;
-            gap: 14px;
-            justify-content: center;
-            margin-top: 24px;
+            gap: 12px;
+            margin-top: 10px;
             flex-wrap: wrap;
         }
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            padding: 11px 28px;
+            padding: 11px 26px;
             border-radius: 8px;
             font-size: .97em;
             font-weight: 700;
@@ -217,7 +241,7 @@ if (!$row) {
 
         @media (max-width: 680px) {
             .banner-title { font-size: 2em; }
-            .card { padding: 20px 14px; }
+            .card { padding: 18px 14px; }
             .btn-row { flex-direction: column; }
             .btn { width: 100%; justify-content: center; }
         }
@@ -225,16 +249,19 @@ if (!$row) {
 </head>
 <body>
 
-<?php include 'show-navbar.php'; show_navbar(); ?>
+<?php
+include 'show-navbar.php';
+show_navbar();
+?>
 
 <div class="banner-wrapper">
     <img src="images/banner_images/Admin/block-pattern.jpg" alt="Admin banner">
-    <h1 class="banner-title">Update Suggestion</h1>
+    <h1 class="banner-title">Create Blog</h1>
 </div>
 
 <div class="page-wrap">
 
-    <a href="admin_review_suggestions.php" class="back-link">&#8592; Back to Suggestions</a>
+    <a href="admin_blogs.php" class="back-link">&#8592; Back to Blogs</a>
 
     <?php if ($message): ?>
         <div class="flash <?= htmlspecialchars($messageType) ?>">
@@ -243,40 +270,48 @@ if (!$row) {
     <?php endif; ?>
 
     <div class="card">
-        <h2>✏️ Edit School Suggestion</h2>
+        <h2>📝 New Blog Post</h2>
 
-        <form method="POST" action="">
+        <form method="POST" action="" enctype="multipart/form-data">
 
             <div class="form-group">
-                <label for="name">School Name <span style="color:#c00">*</span></label>
-                <input type="text" id="name" name="name" required
-                       placeholder="School name"
-                       value="<?= htmlspecialchars($row['name']) ?>">
+                <label for="Title">Title <span style="color:#c00">*</span></label>
+                <input type="text" id="Title" name="Title" required
+                       placeholder="Blog post title"
+                       value="<?= htmlspecialchars($_POST['Title'] ?? '') ?>">
             </div>
 
             <div class="form-group">
-                <label for="contact_name">Contact Name</label>
-                <input type="text" id="contact_name" name="contact_name"
-                       placeholder="Teacher or Head Master name"
-                       value="<?= htmlspecialchars($row['contact_name'] ?? '') ?>">
+                <label for="Author">Author <span style="color:#c00">*</span></label>
+                <input type="text" id="Author" name="Author" required
+                       placeholder="Author name"
+                       value="<?= htmlspecialchars($_POST['Author'] ?? '') ?>">
             </div>
 
             <div class="form-group">
-                <label for="contact_phone">Contact Phone</label>
-                <input type="tel" id="contact_phone" name="contact_phone"
-                       placeholder="e.g. +91 99999 88888"
-                       value="<?= htmlspecialchars($row['contact_phone'] ?? '') ?>">
+                <label for="Description">Description</label>
+                <textarea id="Description" name="Description"
+                          placeholder="Write your blog post content here…"><?= htmlspecialchars($_POST['Description'] ?? '') ?></textarea>
             </div>
 
             <div class="form-group">
-                <label for="commitment_statement">Commitment Statement</label>
-                <textarea id="commitment_statement" name="commitment_statement"
-                          placeholder="Describe plans for managing the library…"><?= htmlspecialchars($row['commitment_statement'] ?? '') ?></textarea>
+                <label for="Video_Link">Video Link</label>
+                <input type="url" id="Video_Link" name="Video_Link"
+                       placeholder="https://youtube.com/..."
+                       value="<?= htmlspecialchars($_POST['Video_Link'] ?? '') ?>">
+                <small>Optional — include a YouTube or video URL to accompany this post</small>
+            </div>
+
+            <div class="form-group">
+                <label for="Location">Upload Pictures</label>
+                <input type="file" id="Location" name="Location[]"
+                       multiple accept="image/*">
+                <small>You can select multiple images (JPG, PNG, GIF, WEBP)</small>
             </div>
 
             <div class="btn-row">
-                <button type="submit" class="btn btn-green">💾 Save Changes</button>
-                <a href="admin_review_suggestions.php" class="btn btn-outline">✕ Cancel</a>
+                <button type="submit" class="btn btn-green">➕ Create Blog</button>
+                <a href="admin_blogs.php" class="btn btn-outline">✕ Cancel</a>
             </div>
 
         </form>
