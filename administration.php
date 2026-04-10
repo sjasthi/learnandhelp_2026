@@ -49,7 +49,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
             z-index: 2;
         }
 
-      
         #admin_icons {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
@@ -150,12 +149,13 @@ show_navbar();
     <a class="admin_icon" href="whats_app.php"><img src="images/admin_icons/whats_app.png" alt="Whats App"><label>Whats App</label></a>
     <a class="admin_icon" href="instructors.php"><img src="images/admin_icons/instructor.png" alt="Instructors"><label>Instructors</label></a>
     <a class="admin_icon" href="admin_board_members.php"><img src="images/admin_icons/users_icon.png" alt="Board Members"><label>Board Members</label></a>
-        <a class="admin_icon" href="admin_patrons.php"><img src="images/admin_icons/patron_icon.png" alt="Patron"><label>Patron</label></a>
-        <a class="admin_icon" href="admin_assets.php"><img src="images/admin_icons/assign.png" alt="Assets"><label>Assets</label></a>
-        <a class="admin_icon" href="admin_assets_report.php"><img src="images/admin_icons/reports_icon.png" alt="Assets Report"><label>Assets Report</label></a>
-		<a class="admin_icon" href="admin_expenses.php"><img src="images/admin_icons/reports_icon.png" alt="Expenses"><label>Expenses</label></a>
-        <a class="admin_icon" href="admin_chatbot_evaluation.php"><img src="images/admin_icons/api.png" alt="Chatbot Eval"><label>Chatbot Eval</label></a>
-        <a class="admin_icon" href="admin_chat_log.php"><img src="images/admin_icons/api.png" alt="Chat Log"><label>Chat Log</label></a>
+    <a class="admin_icon" href="admin_patrons.php"><img src="images/admin_icons/patron_icon.png" alt="Patron"><label>Patron</label></a>
+    <a class="admin_icon" href="admin_assets.php"><img src="images/admin_icons/assign.png" alt="Assets"><label>Assets</label></a>
+    <a class="admin_icon" href="admin_assets_report.php"><img src="images/admin_icons/reports_icon.png" alt="Assets Report"><label>Assets Report</label></a>
+    <a class="admin_icon" href="admin_expenses.php"><img src="images/admin_icons/reports_icon.png" alt="Expenses"><label>Expenses</label></a>
+    <a class="admin_icon" href="admin_chatbot_evaluation.php"><img src="images/admin_icons/api.png" alt="Chatbot Eval"><label>Chatbot Eval</label></a>
+    <a class="admin_icon" href="admin_chat_log.php"><img src="images/admin_icons/api.png" alt="Chat Log"><label>Chat Log</label></a>
+    <a class="admin_icon" href="readme.php"><img src="images/admin_icons/admin_notes.png" alt="README"><label>README</label></a>
 </div>
 
 <div class="icon-attribution">
