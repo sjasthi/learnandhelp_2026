@@ -107,7 +107,7 @@ show_navbar();
         <li><strong>FAQs</strong> — Find answers to frequently asked questions.</li>
         <li><strong>Events</strong> — View upcoming events and activities.</li>
         <li><strong>Help</strong> — See our impact, nominate schools, recommend nonprofits, and use our chatbot.</li>
-        <li><strong>Login / My Account</strong> — Log in or manage your account.</li>
+        <li><strong>Login</strong> — Log in to your account. Once logged in, this changes to <strong>My Account</strong> and <strong>Log Off</strong>.</li>
     </ul>
  
     <hr>
@@ -127,6 +127,7 @@ show_navbar();
         <li>Click the <strong>Login</strong> button.</li>
         <li>Once logged in, the nav bar will show <strong>My Account</strong> and <strong>Log Off</strong>.</li>
     </ol>
+    <div class="note">To create a new account, go to the Login page and click <strong>Create Account</strong> at the bottom of the form.</div>
  
     <hr>
  
@@ -157,7 +158,8 @@ show_navbar();
         <li><strong>Books We Shipped</strong> — See delivered educational materials.</li>
         <li><strong>Nominate a School</strong> — Submit a nomination for a school in need.</li>
         <li><strong>Recommend a Non-Profit</strong> — Suggest a nonprofit for partnership.</li>
-        <li><strong>Chatbot</strong> — Get quick answers using live database data.</li>
+        <li><strong>Schools Chat Bot</strong> — Get quick answers using live database data.</li>
+        <li><strong>User Guide</strong> — This user guide (the page you are reading now).</li>
     </ul>
     <div class="note">
         Example chatbot questions: "How many schools does Learn and Help support?", "Which schools are in Andhra Pradesh?", "Who are the board members?", "What classes are offered?", "Tell me about upcoming events."
